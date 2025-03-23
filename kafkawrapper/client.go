@@ -113,7 +113,7 @@ func (c *Client) NewWriter(topic string, partitions int) (*Writer, error) {
 	return newWriter(kafWriter), nil
 }
 
-func (c *Client) GracefulStop() error {
+func (c *Client) GracefulStop(_ context.Context) error {
 	for i := range c.closures {
 		if err := c.closures[i].Close(); err != nil {
 			logrus.Errorf("error closing writer/reader: %v", err)
