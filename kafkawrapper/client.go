@@ -30,7 +30,7 @@ func NewClient(conf Config) *Client {
 
 func (c *Client) NewReader(ctx context.Context, topic, groupID string, partitions int) (*Reader, error) {
 	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, errors.New("creating reader")
+		return nil, fmt.Errorf("creating reader: %w", err)
 	}
 
 	brokers := make([]string, c.conf.KafkaControllersCount)
@@ -60,7 +60,7 @@ func (c *Client) NewReader(ctx context.Context, topic, groupID string, partition
 // NewFetcher for manual commiting messages
 func (c *Client) NewFetcher(ctx context.Context, topic, groupID string, partitions int) (*Fetcher, error) {
 	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, errors.New("creating reader")
+		return nil, fmt.Errorf("creating fetcher: %w", err)
 	}
 
 	brokers := make([]string, c.conf.KafkaControllersCount)
@@ -89,7 +89,7 @@ func (c *Client) NewFetcher(ctx context.Context, topic, groupID string, partitio
 
 func (c *Client) NewWriter(topic string, partitions int) (*Writer, error) {
 	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, errors.New("creating reader")
+		return nil, fmt.Errorf("creating writer: %w", err)
 	}
 
 	kafWriter := &segmentio.Writer{
