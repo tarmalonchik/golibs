@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"time"
 
 	segmentio "github.com/segmentio/kafka-go"
 )
@@ -45,6 +46,10 @@ func (w *Fetcher) Close() error {
 
 func (w *Fetcher) CommitMessage(ctx context.Context, msg FetchMsg) error {
 	return w.kaf.CommitMessages(ctx, msg.originalMsg)
+}
+
+func (w *Fetcher) SetOffsetAt(ctx context.Context, t time.Time) error {
+	return w.kaf.SetOffsetAt(ctx, t)
 }
 
 func (w *Fetcher) GetFetcher() chan FetchMsg {
