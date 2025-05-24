@@ -15,13 +15,14 @@ type Consumer interface {
 }
 
 type consumer struct {
-	client    sarama.Client
-	con       sarama.Consumer
-	topic     string
-	partition int32
-	offset    int64
-	ctx       context.Context
-	cancel    context.CancelFunc
+	client         sarama.Client
+	con            sarama.Consumer
+	topic          string
+	partition      int32
+	offset         int64
+	ctx            context.Context
+	cancel         context.CancelFunc
+	readOnlyOneMsg bool
 }
 
 func (c *client) NewConsumer(ctx context.Context, topic string, partition int32) (Consumer, error) {
@@ -52,6 +53,10 @@ func (c *consumer) SetOffset(offset int64) {
 	c.offset = offset
 }
 
+func (c *consumer) ReadOnlyOne() {
+	c.readOnlyOneMsg = true
+}
+
 func (c *consumer) SetTimeOffset(time time.Time) error {
 	offset, err := c.client.GetOffset(c.topic, c.partition, time.UTC().UnixMilli())
 	if err != nil {
@@ -78,6 +83,11 @@ func (c *consumer) Process(processorFunc ProcessorFunc, writeErr WriteError) err
 		case msg := <-partConsumer.Messages():
 			if err = processorFunc(c.ctx, msg.Value); err != nil {
 				writeErr(err)
+				continue
+			}
+			if c.readOnlyOneMsg {
+				c.cancel()
+				return nil
 			}
 		}
 	}
