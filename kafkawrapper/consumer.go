@@ -12,6 +12,7 @@ type Consumer interface {
 	Process(processorFunc ProcessorFunc, writeErr WriteError) error
 	SetOffset(offset int64)
 	SetTimeOffset(time time.Time) error
+	ReadOnlyOne()
 }
 
 type consumer struct {
