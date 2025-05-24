@@ -29,6 +29,9 @@ func newFetcher(ctx context.Context, kaf *segmentio.Reader) *Fetcher {
 func (w *Fetcher) runFetcher(ctx context.Context) {
 	for {
 		kafMsg, err := w.kaf.FetchMessage(ctx)
+		if string(kafMsg.Value) == "null" {
+			continue
+		}
 		if err != nil {
 			continue
 		}

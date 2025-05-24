@@ -29,6 +29,9 @@ func newReader(ctx context.Context, kaf *segmentio.Reader) *Reader {
 func (w *Reader) runReader(ctx context.Context) {
 	for {
 		kafMsg, err := w.kaf.ReadMessage(ctx)
+		if err == nil && string(kafMsg.Value) == "null" {
+			continue
+		}
 		w.channel <- Msg{
 			Msg: kafMsg.Value,
 			Err: err,

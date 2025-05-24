@@ -43,6 +43,7 @@ func (c *Client) NewReader(ctx context.Context, topic, groupID string, partition
 			Brokers: brokers,
 			Topic:   topic,
 			GroupID: groupID,
+			MaxWait: timeout,
 			Dialer: &segmentio.Dialer{
 				Timeout:   timeout,
 				DualStack: true,
