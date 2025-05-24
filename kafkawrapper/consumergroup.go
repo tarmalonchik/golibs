@@ -9,7 +9,7 @@ import (
 
 type ConsumerGroup interface {
 	Close()
-	Process(processorFunc ProcessorFunc, writeErr WriteError) error
+	Process(processorFunc ProcessorFunc, postProcessor PostProcessorFuncCG) error
 }
 
 type consumerGroup struct {
@@ -48,15 +48,15 @@ func (c *consumerGroup) Close() {
 	c.cancel()
 }
 
-func (c *consumerGroup) Process(processorFunc ProcessorFunc, writeErr WriteError) error {
+func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFuncCG) error {
 	for {
 		select {
 		case <-c.ctx.Done():
 			return nil
 		default:
 			h := handler{
-				processor: processorFunc,
-				writeErr:  writeErr,
+				processor:     processorFunc,
+				postProcessor: pp,
 			}
 			return c.conGroup.Consume(c.ctx, []string{c.topic}, &h)
 		}
@@ -64,22 +64,25 @@ func (c *consumerGroup) Process(processorFunc ProcessorFunc, writeErr WriteError
 }
 
 type handler struct {
-	processor ProcessorFunc
-	writeErr  WriteError
-	ctx       context.Context
+	processor     ProcessorFunc
+	postProcessor PostProcessorFuncCG
+	ctx           context.Context
 }
 
 func (c handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	fmt.Println("here")
 	for msg := range claim.Messages() {
 		err := c.processor(c.ctx, msg.Value)
-		if err != nil {
-			c.writeErr(err)
+		if c.postProcessor != nil {
+			if commit := c.postProcessor(err); commit {
+				sess.MarkMessage(msg, "")
+			}
 			continue
 		}
-		sess.MarkMessage(msg, "")
+		if err != nil {
+			sess.MarkMessage(msg, "")
+		}
 	}
 	return nil
 }

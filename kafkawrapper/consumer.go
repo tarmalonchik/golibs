@@ -9,7 +9,7 @@ import (
 
 type Consumer interface {
 	Close()
-	Process(processorFunc ProcessorFunc, writeErr WriteError) error
+	Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error
 	SetOffset(offset int64)
 	SetTimeOffset(time time.Time) error
 	ReadOnlyOne()
@@ -71,7 +71,7 @@ func (c *consumer) Close() {
 	c.cancel()
 }
 
-func (c *consumer) Process(processorFunc ProcessorFunc, writeErr WriteError) error {
+func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
 		return err
@@ -82,8 +82,11 @@ func (c *consumer) Process(processorFunc ProcessorFunc, writeErr WriteError) err
 		case <-c.ctx.Done():
 			return nil
 		case msg := <-partConsumer.Messages():
-			if err = processorFunc(c.ctx, msg.Value); err != nil {
-				writeErr(err)
+			err = processorFunc(c.ctx, msg.Value)
+			if postProcessor != nil {
+				postProcessor(err)
+			}
+			if err != nil {
 				continue
 			}
 			if c.readOnlyOneMsg {
