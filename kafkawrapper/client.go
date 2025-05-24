@@ -2,154 +2,43 @@ package kafka
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"time"
 
-	segmentio "github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/sasl/plain"
-	"github.com/sirupsen/logrus"
-
-	"github.com/tarmalonchik/golibs/trace"
+	"github.com/IBM/sarama"
 )
 
-type closures interface {
-	Close() error
+type Client interface {
+	NewConsumer(ctx context.Context, topic string, partition int32) (Consumer, error)
+	NewSyncProducer(topic string) (Producer, error)
+	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
+}
+type client struct {
+	brokers []string
+	client  sarama.Client
 }
 
-type Client struct {
-	conf     Config
-	closures []closures
-}
+func NewClient(conf Config) (Client, error) {
+	config := sarama.NewConfig()
+	config.Net.SASL.Enable = true
+	config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
+	config.Net.SASL.Password = conf.KafkaPassword
+	config.Net.SASL.User = conf.KafkaUser
+	config.Producer.Return.Errors = true
+	config.Producer.Return.Successes = true
 
-func NewClient(conf Config) *Client {
-	return &Client{
-		conf: conf,
+	var out client
+	var err error
+
+	for i := range conf.KafkaControllersCount {
+		out.brokers = append(out.brokers, fmt.Sprintf(brokerTemplate, fmt.Sprintf(conf.KafkaBrokerURLTemplate, i), conf.KafkaPort))
 	}
-}
-
-func (c *Client) NewReader(ctx context.Context, topic, groupID string, partitions int) (*Reader, error) {
-	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, fmt.Errorf("creating reader: %w", err)
-	}
-
-	brokers := make([]string, c.conf.KafkaControllersCount)
-	for i := range brokers {
-		brokers[i] = fmt.Sprintf("%s:%s", fmt.Sprintf(c.conf.KafkaBrokerURLTemplate, i), c.conf.KafkaPort)
-	}
-
-	kafReader := segmentio.NewReader(
-		segmentio.ReaderConfig{
-			Brokers: brokers,
-			Topic:   topic,
-			GroupID: groupID,
-			MaxWait: timeout,
-			Dialer: &segmentio.Dialer{
-				Timeout:   timeout,
-				DualStack: true,
-				SASLMechanism: plain.Mechanism{
-					Username: c.conf.KafkaUser,
-					Password: c.conf.KafkaPassword,
-				},
-			},
-		})
-	c.closures = append(c.closures, kafReader)
-
-	return newReader(ctx, kafReader), nil
-}
-
-// NewFetcher for manual commiting messages
-func (c *Client) NewFetcher(ctx context.Context, topic, groupID string, partitions int) (*Fetcher, error) {
-	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, fmt.Errorf("creating fetcher: %w", err)
-	}
-
-	brokers := make([]string, c.conf.KafkaControllersCount)
-	for i := range brokers {
-		brokers[i] = fmt.Sprintf("%s:%s", fmt.Sprintf(c.conf.KafkaBrokerURLTemplate, i), c.conf.KafkaPort)
-	}
-
-	kafReader := segmentio.NewReader(
-		segmentio.ReaderConfig{
-			Brokers: brokers,
-			Topic:   topic,
-			GroupID: groupID,
-			Dialer: &segmentio.Dialer{
-				Timeout:   timeout,
-				DualStack: true,
-				SASLMechanism: plain.Mechanism{
-					Username: c.conf.KafkaUser,
-					Password: c.conf.KafkaPassword,
-				},
-			},
-		})
-	c.closures = append(c.closures, kafReader)
-
-	return newFetcher(ctx, kafReader), nil
-}
-
-func (c *Client) NewWriter(topic string, partitions int) (*Writer, error) {
-	if err := c.createTopic(topic, partitions); err != nil {
-		return nil, fmt.Errorf("creating writer: %w", err)
-	}
-
-	kafWriter := &segmentio.Writer{
-		Addr:                   segmentio.TCP(fmt.Sprintf("%s:%s", c.conf.KafkaHeadlessServiceURL, c.conf.KafkaPort)),
-		Topic:                  topic,
-		MaxAttempts:            10,
-		WriteBackoffMin:        100 * time.Millisecond,
-		WriteBackoffMax:        1 * time.Second,
-		BatchTimeout:           100 * time.Millisecond,
-		RequiredAcks:           segmentio.RequireOne,
-		BatchBytes:             1000000,
-		AllowAutoTopicCreation: false,
-		Transport: &segmentio.Transport{
-			SASL: plain.Mechanism{
-				Username: c.conf.KafkaUser,
-				Password: c.conf.KafkaPassword,
-			},
-		},
-	}
-	c.closures = append(c.closures, kafWriter)
-	return newWriter(kafWriter), nil
-}
-
-func (c *Client) GracefulStop(_ context.Context) error {
-	for i := range c.closures {
-		if err := c.closures[i].Close(); err != nil {
-			logrus.Errorf("error closing writer/reader: %v", err)
-		}
-	}
-	logrus.Infof("%s stopped successfull", trace.FuncName())
-	return nil
-}
-
-func (c *Client) createTopic(topic string, partitionsCount int) error {
-	dialer := &segmentio.Dialer{
-		Timeout:       timeout,
-		DualStack:     true,
-		SASLMechanism: plain.Mechanism{Username: c.conf.KafkaUser, Password: c.conf.KafkaPassword},
-	}
-
-	conn, err := dialer.Dial(network, fmt.Sprintf("%s:%s", c.conf.KafkaHeadlessServiceURL, c.conf.KafkaPort))
+	out.client, err = sarama.NewClient(out.brokers, config)
 	if err != nil {
-		return errors.New("connecting to kafka during topic creation")
+		return nil, err
 	}
-	defer func() { _ = conn.Close() }()
+	return &out, nil
+}
 
-	replicationFactor := c.conf.KafkaControllersCount - 1
-	if replicationFactor == 0 {
-		replicationFactor = 1
-	}
-
-	topicConf := segmentio.TopicConfig{
-		Topic:             topic,
-		NumPartitions:     partitionsCount,
-		ReplicationFactor: replicationFactor,
-	}
-
-	if err = conn.CreateTopics(topicConf); err != nil {
-		return errors.New("creating topic")
-	}
-	return nil
+func (c *client) Close() error {
+	return c.client.Close()
 }
