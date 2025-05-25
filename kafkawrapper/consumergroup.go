@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/IBM/sarama"
 )
@@ -38,7 +37,6 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (Con
 func (c *consumerGroup) trackContext() {
 	select {
 	case <-c.ctx.Done():
-		fmt.Println("close success")
 		_ = c.conGroup.Close()
 		return
 	}
@@ -57,6 +55,7 @@ func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFun
 			h := handler{
 				processor:     processorFunc,
 				postProcessor: pp,
+				ctx:           c.ctx,
 			}
 			return c.conGroup.Consume(c.ctx, []string{c.topic}, &h)
 		}
