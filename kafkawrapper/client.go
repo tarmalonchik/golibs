@@ -14,12 +14,17 @@ type Client interface {
 	NewSyncProducer(topic string) (Producer, error)
 	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
 }
+
+type CustomLogger interface {
+	Errorf(err error, format string, args ...any)
+}
 type client struct {
 	brokers []string
 	client  sarama.Client
+	logger  CustomLogger
 }
 
-func NewClient(conf Config) (Client, error) {
+func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config := sarama.NewConfig()
 	config.Net.SASL.Enable = true
 	config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
@@ -38,6 +43,7 @@ func NewClient(conf Config) (Client, error) {
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating kafka client")
 	}
+	out.logger = logger
 	return &out, nil
 }
 

@@ -19,6 +19,7 @@ type consumerGroup struct {
 	topic    string
 	ctx      context.Context
 	cancel   context.CancelFunc
+	logger   CustomLogger
 }
 
 func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error) {
@@ -32,6 +33,7 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (Con
 	}
 	out.topic = topic
 	out.client = c.client
+	out.logger = c.logger
 	go out.trackContext()
 	return &out, nil
 }
@@ -59,7 +61,9 @@ func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFun
 				postProcessor: pp,
 				ctx:           c.ctx,
 			}
-			return c.conGroup.Consume(c.ctx, []string{c.topic}, &h)
+			if err := c.conGroup.Consume(c.ctx, []string{c.topic}, &h); err != nil && c.logger != nil {
+				c.logger.Errorf(trace.FuncNameWithError(err), "processing consumer group")
+			}
 		}
 	}
 }

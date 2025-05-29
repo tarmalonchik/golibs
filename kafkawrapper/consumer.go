@@ -35,7 +35,7 @@ func (c *client) NewConsumer(ctx context.Context, topic string, partition int32)
 	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
 	if err != nil {
-		return nil, err
+		return nil, trace.FuncNameWithErrorMsg(err, "create consumer")
 	}
 	out.topic = topic
 	out.partition = partition
@@ -76,7 +76,7 @@ func (c *consumer) Close() {
 func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
-		return trace.FuncNameWithErrorMsg(err, "creating consumer")
+		return trace.FuncNameWithErrorMsg(err, "processing consumer")
 	}
 
 	for {
