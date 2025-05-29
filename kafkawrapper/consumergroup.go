@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/IBM/sarama"
+
+	"github.com/tarmalonchik/golibs/trace"
 )
 
 type ConsumerGroup interface {
@@ -26,7 +28,7 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (Con
 	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, c.client.Config())
 	if err != nil {
-		return nil, err
+		return nil, trace.FuncNameWithErrorMsg(err, "creating consumer group")
 	}
 	out.topic = topic
 	out.client = c.client

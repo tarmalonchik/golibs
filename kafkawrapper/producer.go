@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"github.com/IBM/sarama"
+
+	"github.com/tarmalonchik/golibs/trace"
 )
 
 type Producer interface {
@@ -16,7 +18,7 @@ type producer struct {
 func (c *client) NewSyncProducer(topic string) (Producer, error) {
 	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
 	if err != nil {
-		return nil, err
+		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
 	}
 	out := producer{
 		pro:   pro,

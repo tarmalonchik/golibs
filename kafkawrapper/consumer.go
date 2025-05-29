@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+
+	"github.com/tarmalonchik/golibs/trace"
 )
 
 type Consumer interface {
@@ -74,7 +76,7 @@ func (c *consumer) Close() {
 func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
-		return err
+		return trace.FuncNameWithErrorMsg(err, "creating consumer")
 	}
 
 	for {

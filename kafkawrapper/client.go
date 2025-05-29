@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
+
+	"github.com/tarmalonchik/golibs/trace"
 )
 
 type Client interface {
@@ -34,7 +36,7 @@ func NewClient(conf Config) (Client, error) {
 	}
 	out.client, err = sarama.NewClient(out.brokers, config)
 	if err != nil {
-		return nil, err
+		return nil, trace.FuncNameWithErrorMsg(err, "creating kafka client")
 	}
 	return &out, nil
 }
