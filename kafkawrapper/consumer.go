@@ -28,9 +28,14 @@ type consumer struct {
 	readOnlyOneMsg bool
 }
 
-func (c *client) NewConsumer(ctx context.Context, topic string, partition int32) (Consumer, error) {
+func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32) (Consumer, error) {
 	var out consumer
 	var err error
+
+	part, err := getPartitionNumberWithKey(topic, key, numPartitions)
+	if err != nil {
+		return nil, trace.FuncNameWithErrorMsg(err, "getting part number")
+	}
 
 	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
@@ -38,7 +43,7 @@ func (c *client) NewConsumer(ctx context.Context, topic string, partition int32)
 		return nil, trace.FuncNameWithErrorMsg(err, "create consumer")
 	}
 	out.topic = topic
-	out.partition = partition
+	out.partition = part
 	out.client = c.client
 	go out.trackContext()
 	return &out, nil

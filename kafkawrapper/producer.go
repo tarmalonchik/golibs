@@ -7,7 +7,7 @@ import (
 )
 
 type Producer interface {
-	SendMessage(msg []byte) error
+	SendMessage(msg []byte, key string, numPartitions int32) error
 }
 
 type producer struct {
@@ -27,10 +27,16 @@ func (c *client) NewSyncProducer(topic string) (Producer, error) {
 	return &out, nil
 }
 
-func (p *producer) SendMessage(msg []byte) error {
-	_, _, err := p.pro.SendMessage(&sarama.ProducerMessage{
-		Topic: p.topic,
-		Value: sarama.ByteEncoder(msg),
+func (p *producer) SendMessage(msg []byte, key string, numPartitions int32) error {
+	pNum, err := getPartitionNumberWithKey(p.topic, key, numPartitions)
+	if err != nil {
+		return trace.FuncNameWithErrorMsg(err, "getting part number")
+	}
+
+	_, _, err = p.pro.SendMessage(&sarama.ProducerMessage{
+		Topic:     p.topic,
+		Value:     sarama.ByteEncoder(msg),
+		Partition: pNum,
 	})
 	return err
 }

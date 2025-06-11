@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"fmt"
-
 	"github.com/IBM/sarama"
 
 	"github.com/tarmalonchik/golibs/trace"
@@ -49,4 +48,23 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 
 func (c *client) Close() error {
 	return c.client.Close()
+}
+
+func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (int32, error) {
+	if numPartitions <= 0 {
+		return 0, nil
+	}
+
+	var saramaKey sarama.ByteEncoder
+	if key != "" {
+		saramaKey = []byte(key)
+	}
+	part := sarama.NewHashPartitioner(topic)
+	partNum, err := part.Partition(&sarama.ProducerMessage{
+		Key: saramaKey,
+	}, numPartitions)
+	if err != nil {
+		return 0, trace.FuncNameWithErrorMsg(err, "defining partition")
+	}
+	return partNum, nil
 }
