@@ -28,9 +28,15 @@ type consumer struct {
 	readOnlyOneMsg bool
 }
 
-func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32) (Consumer, error) {
+func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
 	var out consumer
 	var err error
+
+	if createTopic {
+		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, trace.FuncNameWithErrorMsg(err, "creating topic")
+		}
+	}
 
 	part, err := getPartitionNumberWithKey(topic, key, numPartitions)
 	if err != nil {

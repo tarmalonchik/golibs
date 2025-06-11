@@ -9,8 +9,8 @@ import (
 )
 
 type Client interface {
-	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32) (Consumer, error)
-	NewSyncProducer(topic string) (Producer, error)
+	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
+	NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error)
 	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
 }
 
@@ -67,4 +67,20 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 		return 0, trace.FuncNameWithErrorMsg(err, "defining partition")
 	}
 	return partNum, nil
+}
+
+func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
+	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
+	if err != nil {
+		return trace.FuncNameWithErrorMsg(err, "creating kafka admin")
+	}
+
+	err = adm.CreateTopic(topic, &sarama.TopicDetail{
+		NumPartitions:     numPartitions,
+		ReplicationFactor: 3,
+	}, false)
+	if err != nil {
+		return trace.FuncNameWithErrorMsg(err, "creating topic")
+	}
+	return nil
 }

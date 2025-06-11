@@ -7,28 +7,36 @@ import (
 )
 
 type Producer interface {
-	SendMessage(msg []byte, key string, numPartitions int32) error
+	SendMessage(msg []byte, key string) error
 }
 
 type producer struct {
-	pro   sarama.SyncProducer
-	topic string
+	pro           sarama.SyncProducer
+	topic         string
+	numPartitions int32
 }
 
-func (c *client) NewSyncProducer(topic string) (Producer, error) {
+func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error) {
 	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
 	}
 	out := producer{
-		pro:   pro,
-		topic: topic,
+		pro:           pro,
+		topic:         topic,
+		numPartitions: numPartitions,
+	}
+
+	if createTopic {
+		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, trace.FuncNameWithErrorMsg(err, "creating topic")
+		}
 	}
 	return &out, nil
 }
 
-func (p *producer) SendMessage(msg []byte, key string, numPartitions int32) error {
-	pNum, err := getPartitionNumberWithKey(p.topic, key, numPartitions)
+func (p *producer) SendMessage(msg []byte, key string) error {
+	pNum, err := getPartitionNumberWithKey(p.topic, key, p.numPartitions)
 	if err != nil {
 		return trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
