@@ -16,7 +16,7 @@ type producer struct {
 	numPartitions int32
 }
 
-func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error) {
+func (c *client) NewSyncProducer(topic string, numPartitions int32, recreateTopic bool) (Producer, error) {
 	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
@@ -27,8 +27,8 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 		numPartitions: numPartitions,
 	}
 
-	if createTopic {
-		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
+	if recreateTopic {
+		if err = c.recreateTopic(c.brokers, topic, numPartitions); err != nil {
 			return nil, trace.FuncNameWithErrorMsg(err, "creating topic")
 		}
 	}
