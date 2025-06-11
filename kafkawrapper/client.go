@@ -9,7 +9,7 @@ import (
 )
 
 type Client interface {
-	NewConsumer(ctx context.Context, topic string, partition int32) (Consumer, error)
+	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32) (Consumer, error)
 	NewSyncProducer(topic string) (Producer, error)
 	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
 }
