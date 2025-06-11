@@ -79,7 +79,7 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 		ReplicationFactor: 3,
 	}, false)
 	if err != nil {
-		c.logger.Errorf(trace.FuncNameWithError(err), "deleting topic")
+		c.logger.Errorf(trace.FuncNameWithError(err), "create topic")
 	}
 	return nil
 }

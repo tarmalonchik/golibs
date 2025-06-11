@@ -45,6 +45,7 @@ func (p *producer) SendMessage(msg []byte, key string) error {
 		Topic:     p.topic,
 		Value:     sarama.ByteEncoder(msg),
 		Partition: pNum,
+		Key:       sarama.StringEncoder(key),
 	})
 	return err
 }
