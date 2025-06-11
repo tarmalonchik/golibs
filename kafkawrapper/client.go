@@ -76,7 +76,7 @@ func (c *client) recreateTopic(brokers []string, topic string, numPartitions int
 	}
 
 	if err = adm.DeleteTopic(topic); err != nil {
-		c.logger.Errorf(trace.FuncNameWithError(err), "processing consumer group")
+		c.logger.Errorf(trace.FuncNameWithError(err), "deleting topic")
 	}
 
 	err = adm.CreateTopic(topic, &sarama.TopicDetail{
