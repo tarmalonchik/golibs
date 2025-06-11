@@ -9,8 +9,8 @@ import (
 )
 
 type Client interface {
-	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
-	NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error)
+	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, recreateTopic bool) (Consumer, error)
+	NewSyncProducer(topic string, numPartitions int32, recreateTopic bool) (Producer, error)
 	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
 }
 
