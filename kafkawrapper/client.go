@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+
 	"github.com/IBM/sarama"
 
 	"github.com/tarmalonchik/golibs/trace"
@@ -78,7 +79,7 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 		NumPartitions:     numPartitions,
 		ReplicationFactor: 3,
 	}, false)
-	if err != nil {
+	if err != nil && c.logger != nil {
 		c.logger.Errorf(trace.FuncNameWithError(err), "create topic")
 	}
 	return nil
