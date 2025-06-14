@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -95,7 +96,11 @@ func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProces
 		case <-c.ctx.Done():
 			return nil
 		case msg := <-partConsumer.Messages():
-			err = processorFunc(c.ctx, msg.Value)
+			err = processorFunc(c.ctx, msg.Value, string(msg.Key))
+			if errors.Is(err, ErrInvalidKey) {
+				continue
+			}
+
 			if postProcessor != nil {
 				postProcessor(err)
 			}

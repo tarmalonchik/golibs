@@ -2,12 +2,15 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/IBM/sarama"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
+
+var ErrInvalidKey = errors.New("invalid key consumed")
 
 type Client interface {
 	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)

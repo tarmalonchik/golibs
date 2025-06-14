@@ -78,7 +78,7 @@ func (c handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		err := c.processor(c.ctx, msg.Value)
+		err := c.processor(c.ctx, msg.Value, string(msg.Key))
 		if c.postProcessor != nil {
 			if commit := c.postProcessor(err); commit {
 				sess.MarkMessage(msg, "")

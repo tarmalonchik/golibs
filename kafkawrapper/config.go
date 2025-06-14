@@ -8,7 +8,7 @@ const (
 	brokerTemplate = "%s:%s"
 )
 
-type ProcessorFunc func(ctx context.Context, msg []byte) error
+type ProcessorFunc func(ctx context.Context, msg []byte, key string) error
 type PostProcessorFuncCG func(err error) (commit bool)
 type PostProcessorFunc func(err error)
 
