@@ -18,4 +18,5 @@ type Config struct {
 	KafkaPort              string `envconfig:"KAFKA_PORT" required:"true"`
 	KafkaControllersCount  int    `envconfig:"KAFKA_CONTROLLERS_COUNT" required:"true"`
 	KafkaBrokerURLTemplate string `envconfig:"KAFKA_BROKER_URL_TEMPLATE" required:"true"`
+	KafkaReplicationFactor int16  `envconfig:"KAFKA_REPLICATION_FACTOR" default:"3"`
 }

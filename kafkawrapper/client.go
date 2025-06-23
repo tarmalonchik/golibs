@@ -25,6 +25,7 @@ type client struct {
 	brokers []string
 	client  sarama.Client
 	logger  CustomLogger
+	conf    Config
 }
 
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
@@ -46,6 +47,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating kafka client")
 	}
+	out.conf = conf
 	out.logger = logger
 	return &out, nil
 }
@@ -80,7 +82,7 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 	}
 	err = adm.CreateTopic(topic, &sarama.TopicDetail{
 		NumPartitions:     numPartitions,
-		ReplicationFactor: 3,
+		ReplicationFactor: c.conf.KafkaReplicationFactor,
 	}, false)
 	if err != nil && c.logger != nil {
 		c.logger.Errorf(trace.FuncNameWithError(err), "create topic")
