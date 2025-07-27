@@ -42,3 +42,11 @@ func getFunctionLast(in string) string {
 	split := strings.Split(in, "/")
 	return split[len(split)-1]
 }
+
+func FuncNameAndLineLogger() error {
+	pc := make([]uintptr, 15)
+	n := runtime.Callers(3, pc)
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+	return errors.New(fmt.Sprintf("stack: %s, line: %d", getFunctionLast(frame.Function), frame.Line))
+}
