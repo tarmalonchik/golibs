@@ -54,6 +54,13 @@ func (l *Logger) Debug(args ...interface{}) {
 	l.log.Debug(box)
 }
 
+func (l *Logger) Fatal(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.log.Fatal(box)
+}
+
 func (l *Logger) Errorf(format string, args ...interface{}) {
 	box := make([]interface{}, 0, len(args)+1)
 	box = append(box, trace.FuncNameAndLineLogger())
@@ -80,4 +87,11 @@ func (l *Logger) Debugf(format string, args ...interface{}) {
 	box = append(box, trace.FuncNameAndLineLogger())
 	box = append(box, args...)
 	l.log.Debugf("%v "+format, box...)
+}
+
+func (l *Logger) Fatalf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.log.Fatalf("%v "+format, box...)
 }
