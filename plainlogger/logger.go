@@ -26,6 +26,10 @@ func NewLogger(conf Config) *Logger {
 	return l
 }
 
+func (l *Logger) GetLevel() logrus.Level {
+	return l.log.Level
+}
+
 func (l *Logger) Info(args ...interface{}) {
 	box := make([]interface{}, 0, len(args)+1)
 	box = append(box, trace.FuncNameAndLineLogger())
