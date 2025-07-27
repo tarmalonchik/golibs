@@ -47,6 +47,13 @@ func (l *Logger) Error(args ...interface{}) {
 	l.log.Error(box)
 }
 
+func (l *Logger) Debug(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.log.Debug(box)
+}
+
 func (l *Logger) Errorf(format string, args ...interface{}) {
 	box := make([]interface{}, 0, len(args)+1)
 	box = append(box, trace.FuncNameAndLineLogger())
@@ -66,4 +73,11 @@ func (l *Logger) Infof(format string, args ...interface{}) {
 	box = append(box, trace.FuncNameAndLineLogger())
 	box = append(box, args...)
 	l.log.Infof("%v "+format, box...)
+}
+
+func (l *Logger) Debugf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.log.Debugf("%v "+format, box...)
 }
