@@ -99,3 +99,9 @@ func (l *Logger) Fatalf(format string, args ...interface{}) {
 	box = append(box, args...)
 	l.log.Fatalf("%v "+format, box...)
 }
+
+func (l *Logger) With(fields map[string]interface{}) {
+	for key, val := range fields {
+		l.log.WithField(key, val)
+	}
+}
