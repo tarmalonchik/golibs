@@ -197,3 +197,9 @@ func (l *Entry) Trace(args ...interface{}) {
 	box = append(box, args...)
 	l.entry.Trace(box)
 }
+
+func (l *Entry) With(fields map[string]interface{}) *Entry {
+	return &Entry{
+		entry: l.entry.WithFields(fields),
+	}
+}
