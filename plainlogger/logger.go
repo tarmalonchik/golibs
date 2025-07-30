@@ -100,8 +100,86 @@ func (l *Logger) Fatalf(format string, args ...interface{}) {
 	l.log.Fatalf("%v "+format, box...)
 }
 
-func (l *Logger) With(fields map[string]interface{}) {
-	for key, val := range fields {
-		l.log.WithField(key, val)
+func (l *Logger) With(fields map[string]interface{}) *Entry {
+	return &Entry{
+		entry: l.log.WithFields(fields),
 	}
+}
+
+type Entry struct {
+	entry *logrus.Entry
+}
+
+func (l *Entry) GetLevel() logrus.Level {
+	return l.entry.Level
+}
+
+func (l *Entry) Info(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Info(box)
+}
+
+func (l *Entry) Warn(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Warn(box)
+}
+
+func (l *Entry) Error(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Error(box)
+}
+
+func (l *Entry) Debug(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Debug(box)
+}
+
+func (l *Entry) Fatal(args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Fatal(box)
+}
+
+func (l *Entry) Errorf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Errorf("%v "+format, box...)
+}
+
+func (l *Entry) Warnf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Warnf("%v "+format, box...)
+}
+
+func (l *Entry) Infof(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Infof("%v "+format, box...)
+}
+
+func (l *Entry) Debugf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Debugf("%v "+format, box...)
+}
+
+func (l *Entry) Fatalf(format string, args ...interface{}) {
+	box := make([]interface{}, 0, len(args)+1)
+	box = append(box, trace.FuncNameAndLineLogger())
+	box = append(box, args...)
+	l.entry.Fatalf("%v "+format, box...)
 }
