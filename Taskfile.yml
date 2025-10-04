@@ -1,0 +1,48 @@
+version: "3"
+
+vars:
+  SERVICE_NAME: "member"
+  GOBIN: $(pwd)/bin
+  GOLANGCI_LINT_VERSION: v2.4.0
+
+tasks:
+  generate:
+    dir: proto
+    cmds:
+      - ./gen_proto
+  default:
+    cmds:
+      - task: fmt
+      - task: lint-fix
+  fmt:
+    desc: "format code"
+    cmds:
+      - gofmt -w -l .
+  lint:
+    desc: "run lint"
+    cmds:
+      - CGO_ENABLED=0 GOBIN={{ .GOBIN }} go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{ .GOLANGCI_LINT_VERSION }}
+      - CGO_ENABLED=0 GOBIN={{ .GOBIN }} {{ .GOBIN }}/golangci-lint run {{ default "--timeout 10m --verbose --print-resources-usage" .CLI_ARGS }}
+  lint-fix:
+    desc: "run lint fix"
+    cmds:
+      - go mod tidy
+      - CGO_ENABLED=0 GOBIN={{ .GOBIN }} go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{ .GOLANGCI_LINT_VERSION }}
+      - CGO_ENABLED=0 GOBIN={{ .GOBIN }} {{ .GOBIN }}/golangci-lint run {{ default "--timeout 10m --verbose --print-resources-usage --fix" .CLI_ARGS }}
+  test:
+    desc: "run unit tests with coverage"
+    cmds:
+      - GOPATH=$GOPATH GOBIN={{ .GOBIN }} go clean --testcache
+      - GOPATH=$GOPATH GOBIN={{ .GOBIN }} go test -v -race $(go list ./... | grep -v test/) -coverprofile=coverage.out ./... | tee test.log
+      - GOPATH=$GOPATH GOBIN={{ .GOBIN }} go tool cover -func=coverage.out | grep total | awk '{print $3}'
+      - rm ./coverage.out ./test.log
+  isolation-tests:
+    desc: "run isolation tests"
+    aliases:
+      - isotest
+      - isotests
+    dotenv: [ .test.env ]
+    cmds:
+      - GOPATH=$GOPATH go clean --testcache
+      - GOPATH=$GOPATH go test -v ./test/cases/...
+

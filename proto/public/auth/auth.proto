@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "github.com/tarmalonchik/golibs/proto/gen/go/auth;proto";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.MethodOptions {
+  AuthOption auth = 50001;
+}
+
+// Тип авторизации
+enum AuthType {
+  NONE = 0;
+  BASIC = 1;
+}
+
+message AuthOption {
+  AuthType type = 1;
+}

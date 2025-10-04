@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "github.com/tarmalonchik/golibs/proto/gen/go/test;proto";
+
+
+import  "auth/auth.proto";
+
+service Echo {
+  rpc Echo (EchoRequest) returns (EchoResponse){
+    option (auth) = { type: BASIC };
+  }
+}
+
+message EchoRequest {
+  string text = 1;
+}
+
+message EchoResponse {
+  string text = 1;
+}
