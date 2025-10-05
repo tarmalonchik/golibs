@@ -7,37 +7,48 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/tarmalonchik/golibs/grpc"
+	"github.com/tarmalonchik/golibs/grpc/interceptor"
+	"github.com/tarmalonchik/golibs/grpc/middleware"
 	"github.com/tarmalonchik/golibs/grpc/server"
 	proto "github.com/tarmalonchik/golibs/proto/gen/go/test"
 )
 
 type modifier func(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error)
 
-type EchoServer struct {
+type Server struct {
 	proto.UnimplementedEchoServer
 	ch       chan struct{}
 	modifier modifier
 }
 
-func NewGreeterServer() *EchoServer {
-	return &EchoServer{
+func NewServer() *Server {
+	return &Server{
 		ch: make(chan struct{}, 1),
 	}
 }
 
-func (s *EchoServer) AddModifier(modifier modifier) {
+func (s *Server) AddModifier(modifier modifier) {
 	s.modifier = modifier
 }
 
-func (s *EchoServer) Run(listen netip.AddrPort) {
+func (s *Server) Run(listen netip.AddrPort, m middleware.Middleware) {
 	lis, err := net.Listen("tcp", listen.String())
 	if err != nil {
 		logrus.Fatalf("failed to listen: %v", err)
 	}
 
-	srv := server.New(
+	opts := []server.Opt{
 		server.WithLogLevel(grpc.LogLevelInfo),
-	)
+	}
+	if m != nil {
+		opts = append(opts, server.WithAuth(
+			interceptor.NewAuth(
+				interceptor.WithBasicAuth(m),
+			),
+		))
+	}
+
+	srv := server.New(opts...)
 	proto.RegisterEchoServer(srv, s)
 
 	go func() {
@@ -51,10 +62,18 @@ func (s *EchoServer) Run(listen netip.AddrPort) {
 	}()
 }
 
-func (s *EchoServer) Stop() {
+func (s *Server) Stop() {
 	s.ch <- struct{}{}
 }
 
-func (s *EchoServer) Echo(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error) {
+func (s *Server) Echo(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error) {
+	return s.modifier(ctx, req)
+}
+
+func (s *Server) EchoAuth(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error) {
+	return s.modifier(ctx, req)
+}
+
+func (s *Server) EchoAuthNone(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error) {
 	return s.modifier(ctx, req)
 }

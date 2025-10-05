@@ -57,11 +57,8 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 }
 
 func (c *consumer) trackContext() {
-	select {
-	case <-c.ctx.Done():
-		_ = c.con.Close()
-		return
-	}
+	<-c.ctx.Done()
+	_ = c.con.Close()
 }
 
 func (c *consumer) SetOffset(offset int64) {

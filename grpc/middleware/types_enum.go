@@ -12,47 +12,93 @@ import (
 )
 
 const (
-	// MiddlewareTypeNone is a MiddlewareType of type none.
-	MiddlewareTypeNone MiddlewareType = "none"
-	// MiddlewareTypeBasic is a MiddlewareType of type basic.
-	MiddlewareTypeBasic MiddlewareType = "basic"
+	// ContextKeyAuthorization is a ContextKey of type authorization.
+	ContextKeyAuthorization ContextKey = "authorization"
+	// ContextKeyUsername is a ContextKey of type username.
+	ContextKeyUsername ContextKey = "username"
 )
 
-var ErrInvalidMiddlewareType = errors.New("not a valid MiddlewareType")
+var ErrInvalidContextKey = errors.New("not a valid ContextKey")
 
-// MiddlewareTypeValues returns a list of the values for MiddlewareType
-func MiddlewareTypeValues() []MiddlewareType {
-	return []MiddlewareType{
-		MiddlewareTypeNone,
-		MiddlewareTypeBasic,
+// ContextKeyValues returns a list of the values for ContextKey
+func ContextKeyValues() []ContextKey {
+	return []ContextKey{
+		ContextKeyAuthorization,
+		ContextKeyUsername,
 	}
 }
 
 // String implements the Stringer interface.
-func (x MiddlewareType) String() string {
+func (x ContextKey) String() string {
 	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
-func (x MiddlewareType) IsValid() bool {
-	_, err := ParseMiddlewareType(string(x))
+func (x ContextKey) IsValid() bool {
+	_, err := ParseContextKey(string(x))
 	return err == nil
 }
 
-var _MiddlewareTypeValue = map[string]MiddlewareType{
-	"none":  MiddlewareTypeNone,
-	"basic": MiddlewareTypeBasic,
+var _ContextKeyValue = map[string]ContextKey{
+	"authorization": ContextKeyAuthorization,
+	"username":      ContextKeyUsername,
 }
 
-// ParseMiddlewareType attempts to convert a string to a MiddlewareType.
-func ParseMiddlewareType(name string) (MiddlewareType, error) {
-	if x, ok := _MiddlewareTypeValue[name]; ok {
+// ParseContextKey attempts to convert a string to a ContextKey.
+func ParseContextKey(name string) (ContextKey, error) {
+	if x, ok := _ContextKeyValue[name]; ok {
 		return x, nil
 	}
 	// Case insensitive parse, do a separate lookup to prevent unnecessary cost of lowercasing a string if we don't need to.
-	if x, ok := _MiddlewareTypeValue[strings.ToLower(name)]; ok {
+	if x, ok := _ContextKeyValue[strings.ToLower(name)]; ok {
 		return x, nil
 	}
-	return MiddlewareType(""), fmt.Errorf("%s is %w", name, ErrInvalidMiddlewareType)
+	return ContextKey(""), fmt.Errorf("%s is %w", name, ErrInvalidContextKey)
+}
+
+const (
+	// TypeNone is a Type of type none.
+	TypeNone Type = "none"
+	// TypeBasic is a Type of type basic.
+	TypeBasic Type = "basic"
+)
+
+var ErrInvalidType = errors.New("not a valid Type")
+
+// TypeValues returns a list of the values for Type
+func TypeValues() []Type {
+	return []Type{
+		TypeNone,
+		TypeBasic,
+	}
+}
+
+// String implements the Stringer interface.
+func (x Type) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x Type) IsValid() bool {
+	_, err := ParseType(string(x))
+	return err == nil
+}
+
+var _TypeValue = map[string]Type{
+	"none":  TypeNone,
+	"basic": TypeBasic,
+}
+
+// ParseType attempts to convert a string to a Type.
+func ParseType(name string) (Type, error) {
+	if x, ok := _TypeValue[name]; ok {
+		return x, nil
+	}
+	// Case insensitive parse, do a separate lookup to prevent unnecessary cost of lowercasing a string if we don't need to.
+	if x, ok := _TypeValue[strings.ToLower(name)]; ok {
+		return x, nil
+	}
+	return Type(""), fmt.Errorf("%s is %w", name, ErrInvalidType)
 }

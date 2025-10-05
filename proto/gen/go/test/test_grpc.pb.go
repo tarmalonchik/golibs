@@ -19,14 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Echo_Echo_FullMethodName = "/Echo/Echo"
+	Echo_EchoAuth_FullMethodName     = "/Echo/EchoAuth"
+	Echo_Echo_FullMethodName         = "/Echo/Echo"
+	Echo_EchoAuthNone_FullMethodName = "/Echo/EchoAuthNone"
 )
 
 // EchoClient is the client API for Echo service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EchoClient interface {
+	EchoAuth(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
+	EchoAuthNone(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 }
 
 type echoClient struct {
@@ -35,6 +39,16 @@ type echoClient struct {
 
 func NewEchoClient(cc grpc.ClientConnInterface) EchoClient {
 	return &echoClient{cc}
+}
+
+func (c *echoClient) EchoAuth(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EchoResponse)
+	err := c.cc.Invoke(ctx, Echo_EchoAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *echoClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
@@ -47,11 +61,23 @@ func (c *echoClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.Cal
 	return out, nil
 }
 
+func (c *echoClient) EchoAuthNone(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EchoResponse)
+	err := c.cc.Invoke(ctx, Echo_EchoAuthNone_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EchoServer is the server API for Echo service.
 // All implementations must embed UnimplementedEchoServer
 // for forward compatibility.
 type EchoServer interface {
+	EchoAuth(context.Context, *EchoRequest) (*EchoResponse, error)
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
+	EchoAuthNone(context.Context, *EchoRequest) (*EchoResponse, error)
 	mustEmbedUnimplementedEchoServer()
 }
 
@@ -62,8 +88,14 @@ type EchoServer interface {
 // pointer dereference when methods are called.
 type UnimplementedEchoServer struct{}
 
+func (UnimplementedEchoServer) EchoAuth(context.Context, *EchoRequest) (*EchoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EchoAuth not implemented")
+}
 func (UnimplementedEchoServer) Echo(context.Context, *EchoRequest) (*EchoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
+}
+func (UnimplementedEchoServer) EchoAuthNone(context.Context, *EchoRequest) (*EchoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EchoAuthNone not implemented")
 }
 func (UnimplementedEchoServer) mustEmbedUnimplementedEchoServer() {}
 func (UnimplementedEchoServer) testEmbeddedByValue()              {}
@@ -86,6 +118,24 @@ func RegisterEchoServer(s grpc.ServiceRegistrar, srv EchoServer) {
 	s.RegisterService(&Echo_ServiceDesc, srv)
 }
 
+func _Echo_EchoAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EchoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EchoServer).EchoAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Echo_EchoAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EchoServer).EchoAuth(ctx, req.(*EchoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Echo_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EchoRequest)
 	if err := dec(in); err != nil {
@@ -104,6 +154,24 @@ func _Echo_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Echo_EchoAuthNone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EchoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EchoServer).EchoAuthNone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Echo_EchoAuthNone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EchoServer).EchoAuthNone(ctx, req.(*EchoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Echo_ServiceDesc is the grpc.ServiceDesc for Echo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -112,8 +180,16 @@ var Echo_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*EchoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "EchoAuth",
+			Handler:    _Echo_EchoAuth_Handler,
+		},
+		{
 			MethodName: "Echo",
 			Handler:    _Echo_Echo_Handler,
+		},
+		{
+			MethodName: "EchoAuthNone",
+			Handler:    _Echo_EchoAuthNone_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

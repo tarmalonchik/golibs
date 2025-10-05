@@ -6,8 +6,12 @@ option go_package = "github.com/tarmalonchik/golibs/proto/gen/go/test;proto";
 import  "auth/auth.proto";
 
 service Echo {
-  rpc Echo (EchoRequest) returns (EchoResponse){
+  rpc EchoAuth (EchoRequest) returns (EchoResponse){
     option (auth) = { type: BASIC };
+  }
+  rpc Echo (EchoRequest) returns (EchoResponse);
+  rpc EchoAuthNone (EchoRequest) returns (EchoResponse){
+    option (auth) = { type: NONE };
   }
 }
 

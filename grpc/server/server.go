@@ -12,11 +12,15 @@ func New(opts ...Opt) *grpc.Server {
 		opts[i](conf)
 	}
 
-	server := grpc.NewServer(
-		//grpc.UnaryInterceptor(interceptor.),
+	serverOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
 			interceptor.NewLoggingServerInterceptor(conf.logLevel),
 		),
-	)
-	return server
+	}
+
+	if conf.auth != nil {
+		serverOpts = append(serverOpts, grpc.UnaryInterceptor(conf.auth.Interceptor))
+	}
+
+	return grpc.NewServer(serverOpts...)
 }

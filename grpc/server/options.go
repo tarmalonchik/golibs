@@ -25,8 +25,8 @@ func WithLogLevel(lvl grpc.LogLevel) Opt {
 	}
 }
 
-func WithAuth(auth *interceptor.Auth) Opt {
+func WithAuth(auth interceptor.Auth) Opt {
 	return func(v *options) {
-		v.auth = *auth
+		v.auth = auth
 	}
 }

@@ -40,11 +40,8 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (Con
 }
 
 func (c *consumerGroup) trackContext() {
-	select {
-	case <-c.ctx.Done():
-		_ = c.conGroup.Close()
-		return
-	}
+	<-c.ctx.Done()
+	_ = c.conGroup.Close()
 }
 
 func (c *consumerGroup) Close() {

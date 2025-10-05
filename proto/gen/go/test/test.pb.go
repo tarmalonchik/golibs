@@ -118,9 +118,11 @@ const file_test_test_proto_rawDesc = "" +
 	"\vEchoRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\"\"\n" +
 	"\fEchoResponse\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text23\n" +
-	"\x04Echo\x12+\n" +
-	"\x04Echo\x12\f.EchoRequest\x1a\r.EchoResponse\"\x06\x8a\xb5\x18\x02\b\x01B8Z6github.com/tarmalonchik/golibs/proto/gen/go/test;protob\x06proto3"
+	"\x04text\x18\x01 \x01(\tR\x04text2\x8f\x01\n" +
+	"\x04Echo\x12/\n" +
+	"\bEchoAuth\x12\f.EchoRequest\x1a\r.EchoResponse\"\x06\x8a\xb5\x18\x02\b\x01\x12#\n" +
+	"\x04Echo\x12\f.EchoRequest\x1a\r.EchoResponse\x121\n" +
+	"\fEchoAuthNone\x12\f.EchoRequest\x1a\r.EchoResponse\"\x04\x8a\xb5\x18\x00B8Z6github.com/tarmalonchik/golibs/proto/gen/go/test;protob\x06proto3"
 
 var (
 	file_test_test_proto_rawDescOnce sync.Once
@@ -140,10 +142,14 @@ var file_test_test_proto_goTypes = []any{
 	(*EchoResponse)(nil), // 1: EchoResponse
 }
 var file_test_test_proto_depIdxs = []int32{
-	0, // 0: Echo.Echo:input_type -> EchoRequest
-	1, // 1: Echo.Echo:output_type -> EchoResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 0: Echo.EchoAuth:input_type -> EchoRequest
+	0, // 1: Echo.Echo:input_type -> EchoRequest
+	0, // 2: Echo.EchoAuthNone:input_type -> EchoRequest
+	1, // 3: Echo.EchoAuth:output_type -> EchoResponse
+	1, // 4: Echo.Echo:output_type -> EchoResponse
+	1, // 5: Echo.EchoAuthNone:output_type -> EchoResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

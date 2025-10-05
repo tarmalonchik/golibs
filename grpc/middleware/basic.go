@@ -5,60 +5,67 @@ import (
 	"encoding/base64"
 	"strings"
 
-	proto "github.com/tarmalonchik/golibs/proto/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-type Middleware struct {
+const (
+	basicPrefix = "Basic "
+)
+
+type BasicMiddleware struct {
 	interceptor    grpc.UnaryServerInterceptor
-	middlewareType MiddlewareType
+	middlewareType Type
 }
 
-func (m *Middleware) GetInterceptor() grpc.UnaryServerInterceptor {
+func (m *BasicMiddleware) GetInterceptor() grpc.UnaryServerInterceptor {
 	return m.interceptor
 }
 
-func (m *Middleware) GetType() MiddlewareType {
+func (m *BasicMiddleware) GetType() Type {
 	return m.middlewareType
 }
 
-func NewBasicMiddleware() *Middleware {
-	return &Middleware{
-		interceptor:    basic,
-		middlewareType: MiddlewareTypeBasic,
+func NewBasicMiddleware(user, password string) Middleware {
+	g := gag{
+		user:     user,
+		password: password,
+	}
+
+	return &BasicMiddleware{
+		interceptor:    g.basic,
+		middlewareType: TypeBasic,
 	}
 }
 
-func basic(
+type gag struct {
+	user, password string
+}
+
+func (g *gag) basic(
 	ctx context.Context,
 	req interface{},
 	_ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "metadata not provided")
 	}
 
-	values := md["authorization"]
+	values := md[ContextKeyAuthorization.String()]
 	if len(values) == 0 {
 		return nil, status.Error(codes.Unauthenticated, "authorization header missing")
 	}
 
 	auth := values[0]
-	const prefix = "Basic "
-	if !strings.HasPrefix(auth, prefix) {
+	if !strings.HasPrefix(auth, basicPrefix) {
 		return nil, status.Error(codes.Unauthenticated, "invalid auth scheme")
 	}
 
-	payload, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, prefix))
+	payload, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, basicPrefix))
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "malformed base64")
 	}
@@ -67,13 +74,18 @@ func basic(
 	if len(parts) != 2 {
 		return nil, status.Error(codes.Unauthenticated, "invalid credentials format")
 	}
-
-	user, pass := parts[0], parts[1]
-	if !validateUser(user, pass) {
-		return nil, status.Error(codes.PermissionDenied, "invalid username or password")
+	if len(parts[0]) == 0 || len(parts[1]) == 0 {
+		return nil, status.Error(codes.Unauthenticated, "authorization header missing")
 	}
 
-	// всё ок, добавляем пользователя в контекст
-	ctx = context.WithValue(ctx, "user", user)
-	return handler(ctx, req)
+	if cryptCompare(g.user, parts[0]) && cryptCompare(g.password, parts[1]) {
+		ctx = context.WithValue(ctx, ContextKeyUsername, g.user)
+		return handler(ctx, req)
+	}
+	return nil, status.Error(codes.PermissionDenied, "invalid username or password")
+}
+
+func InjectBasic(ctx context.Context, user, password string) context.Context {
+	token := base64.StdEncoding.EncodeToString([]byte(user + ":" + password))
+	return metadata.AppendToOutgoingContext(ctx, ContextKeyAuthorization.String(), basicPrefix+token)
 }
