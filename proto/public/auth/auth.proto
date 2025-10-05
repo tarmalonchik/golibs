@@ -8,7 +8,6 @@ extend google.protobuf.MethodOptions {
   AuthOption auth = 50001;
 }
 
-// Тип авторизации
 enum AuthType {
   NONE = 0;
   BASIC = 1;

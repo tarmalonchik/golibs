@@ -1,9 +1,10 @@
-package grpc
+package interceptor
 
 import (
 	"context"
 	"path"
 
+	"github.com/tarmalonchik/golibs/grpc/middleware"
 	proto "github.com/tarmalonchik/golibs/proto/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -13,23 +14,49 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func authInterceptor(
+type AuthOpt func(*authOptions)
+
+type authOptions struct {
+	middlewares map[middleware.MiddlewareType]grpc.UnaryServerInterceptor
+}
+
+func WithBasicAuth(middleware middleware.Middleware) AuthOpt {
+	return func(v *authOptions) {
+		v.middlewares[middleware.GetType()] = middleware.GetInterceptor()
+	}
+}
+
+type Auth struct {
+	authOptions authOptions
+}
+
+func NewAuth(opts ...AuthOpt) *Auth {
+	auth := &authOptions{}
+
+	for i := range opts {
+		opts[i](auth)
+	}
+
+	return &Auth{authOptions: *auth}
+}
+
+func (a *Auth) Interceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-
 	authType := getAuthTypeForMethod(path.Base(info.FullMethod))
+
 	switch authType {
 	case proto.AuthType_NONE:
 		return handler(ctx, req)
 	case proto.AuthType_BASIC:
-		return handleBasicAuth(ctx, req, info, handler)
-	case proto.AuthType_JWT:
-		return handleJWTAuth(ctx, req, info, handler)
-	case proto.AuthType_ADMIN_ONLY:
-		return handleAdminAuth(ctx, req, info, handler)
+		basic := a.authOptions.middlewares[middleware.MiddlewareTypeBasic]
+		if basic == nil {
+			return nil, status.Errorf(codes.Unauthenticated, "basic auth is unimplemented")
+		}
+		return basic(ctx, req, info, handler)
 	default:
 		return nil, status.Error(codes.PermissionDenied, "unknown auth type")
 	}

@@ -6,8 +6,9 @@ import (
 	"net/netip"
 
 	"github.com/sirupsen/logrus"
+	"github.com/tarmalonchik/golibs/grpc"
+	"github.com/tarmalonchik/golibs/grpc/server"
 	proto "github.com/tarmalonchik/golibs/proto/gen/go/test"
-	"google.golang.org/grpc"
 )
 
 type modifier func(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error)
@@ -34,7 +35,9 @@ func (s *EchoServer) Run(listen netip.AddrPort) {
 		logrus.Fatalf("failed to listen: %v", err)
 	}
 
-	srv := grpc.NewServer()
+	srv := server.New(
+		server.WithLogLevel(grpc.LogLevelInfo),
+	)
 	proto.RegisterEchoServer(srv, s)
 
 	go func() {

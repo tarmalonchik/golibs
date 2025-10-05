@@ -7,9 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/stretchr/testify/suite"
 	"github.com/tarmalonchik/golibs/grpc"
-	proto "github.com/tarmalonchik/golibs/proto/gen/go/test/test"
+	"github.com/tarmalonchik/golibs/grpc/client"
+	proto "github.com/tarmalonchik/golibs/proto/gen/go/test"
 	"github.com/tarmalonchik/golibs/test/basetest"
 	"github.com/tarmalonchik/golibs/test/cases/grpc/server"
 	"google.golang.org/grpc/codes"
@@ -32,14 +34,20 @@ func TestGRPCSuite(t *testing.T) {
 func (s *GRPCSuite) TestExponentialBackoff() {
 	ctx := context.Background()
 
-	conn, err := grpc.NewGRPCConnection(defaultHost)
+	conn, err := client.NewConnection(
+		defaultHost,
+		client.WithLogLevel(grpc.LogLevelInfo),
+		client.WithRetryMax(20),
+		client.WithRetryCodes(codes.Unavailable, codes.ResourceExhausted, codes.DeadlineExceeded),
+		client.WithRetryBackoff(retry.BackoffExponential(200*time.Millisecond)),
+	)
 	s.Require().NoError(err)
 
 	defer func() {
 		_ = conn.Close()
 	}()
 
-	client := proto.NewEchoClient(conn)
+	cli := proto.NewEchoClient(conn)
 
 	counter := atomic.Uint32{}
 
@@ -59,7 +67,7 @@ func (s *GRPCSuite) TestExponentialBackoff() {
 	ch := make(chan struct{})
 
 	go func() {
-		resp, err := client.Echo(ctx, &proto.EchoRequest{
+		resp, err := cli.Echo(ctx, &proto.EchoRequest{
 			Text: defaultText,
 		})
 		s.Require().NoError(err)
