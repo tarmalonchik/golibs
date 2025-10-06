@@ -122,5 +122,5 @@ func getAuthTypeForMethod(fullMethod string) (authProto.AuthType, error) {
 	if !ok || ext == nil {
 		return authProto.AuthType_NONE, nil
 	}
-	return ext.Type, nil
+	return ext.GetType(), nil
 }

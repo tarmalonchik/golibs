@@ -31,6 +31,7 @@ func (s *Server) AddModifier(modifier modifier) {
 	s.modifier = modifier
 }
 
+// nolint:noctx
 func (s *Server) Run(listen netip.AddrPort, m middleware.Middleware) {
 	lis, err := net.Listen("tcp", listen.String())
 	if err != nil {

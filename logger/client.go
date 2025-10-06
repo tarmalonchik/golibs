@@ -49,5 +49,4 @@ func (c *Client) Warnf(format string, args ...any) {
 
 func (c *Client) Log(ctx context.Context, message string) {
 	c.logger.WithContext(ctx).WithError(fmt.Errorf("application runner")).Error(message)
-
 }
