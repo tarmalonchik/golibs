@@ -6,6 +6,9 @@ vars:
   GOLANGCI_LINT_VERSION: v2.4.0
 
 tasks:
+  bump:
+    cmds:
+      - ./scripts/git_increment_tag.bash
   generate:
     dir: proto
     cmds:
