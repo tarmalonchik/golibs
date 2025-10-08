@@ -2,16 +2,15 @@ syntax = "proto3";
 
 option go_package = "github.com/tarmalonchik/golibs/proto/gen/go/test;proto";
 
-
-import  "auth/auth.proto";
+import  "auth/v1/auth.proto";
 
 service Echo {
   rpc EchoAuth (EchoRequest) returns (EchoResponse){
-    option (auth) = { type: BASIC };
+    option (auth.v1.auth) = { type: AUTH_TYPE_BASIC };
   }
   rpc Echo (EchoRequest) returns (EchoResponse);
   rpc EchoAuthNone (EchoRequest) returns (EchoResponse){
-    option (auth) = { type: NONE };
+    option (auth.v1.auth) = { type: AUTH_TYPE_UNSPECIFIED };
   }
 }
 

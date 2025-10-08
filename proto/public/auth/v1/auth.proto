@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package auth.v1;
+
 option go_package = "github.com/tarmalonchik/golibs/proto/gen/go/auth;proto";
 
 import "google/protobuf/descriptor.proto";
@@ -9,8 +11,8 @@ extend google.protobuf.MethodOptions {
 }
 
 enum AuthType {
-  NONE = 0;
-  BASIC = 1;
+  AUTH_TYPE_UNSPECIFIED = 0;
+  AUTH_TYPE_BASIC = 1;
 }
 
 message AuthOption {

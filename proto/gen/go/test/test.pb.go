@@ -114,7 +114,7 @@ var File_test_test_proto protoreflect.FileDescriptor
 
 const file_test_test_proto_rawDesc = "" +
 	"\n" +
-	"\x0ftest/test.proto\x1a\x0fauth/auth.proto\"!\n" +
+	"\x0ftest/test.proto\x1a\x12auth/v1/auth.proto\"!\n" +
 	"\vEchoRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\"\"\n" +
 	"\fEchoResponse\x12\x12\n" +
