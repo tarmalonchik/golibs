@@ -1,12 +1,15 @@
 package client
 
 import (
+	"crypto/tls"
 	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/sirupsen/logrus"
 	"github.com/tarmalonchik/golibs/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Opt func(*options)
@@ -16,6 +19,7 @@ type options struct {
 	retry           []retry.CallOption
 	timeout         time.Duration
 	perRetryTimeout time.Duration
+	credentials     credentials.TransportCredentials
 }
 
 func newDefaultOptions() *options {
@@ -23,6 +27,7 @@ func newDefaultOptions() *options {
 		logLevel:        logrus.ErrorLevel,
 		timeout:         time.Second * 20,
 		perRetryTimeout: time.Second * 5,
+		credentials:     insecure.NewCredentials(),
 	}
 }
 
@@ -59,5 +64,13 @@ func WithTimeout(timeout time.Duration) Opt {
 func WithPerRetryTimeout(timeout time.Duration) Opt {
 	return func(v *options) {
 		v.retry = append(v.retry, retry.WithPerRetryTimeout(timeout))
+	}
+}
+
+func WithTLS() Opt {
+	return func(v *options) {
+		v.credentials = credentials.NewTLS(&tls.Config{
+			MinVersion: tls.VersionTLS12,
+		})
 	}
 }

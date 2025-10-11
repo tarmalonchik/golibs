@@ -5,7 +5,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	"github.com/tarmalonchik/golibs/grpc/interceptor"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func NewConnection(addr string, opts ...Opt) (*grpc.ClientConn, error) {
@@ -16,7 +15,7 @@ func NewConnection(addr string, opts ...Opt) (*grpc.ClientConn, error) {
 
 	return grpc.NewClient(
 		addr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(conf.credentials),
 		grpc.WithChainUnaryInterceptor(
 			timeout.UnaryClientInterceptor(conf.timeout),
 			interceptor.NewLoggingClientInterceptor(conf.logLevel),
