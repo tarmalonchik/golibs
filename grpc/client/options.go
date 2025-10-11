@@ -1,6 +1,8 @@
 package client
 
 import (
+	"time"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/sirupsen/logrus"
 	"github.com/tarmalonchik/golibs/grpc"
@@ -12,11 +14,13 @@ type Opt func(*options)
 type options struct {
 	logLevel logrus.Level
 	retry    []retry.CallOption
+	timeout  time.Duration
 }
 
 func newDefaultOptions() *options {
 	return &options{
 		logLevel: logrus.ErrorLevel,
+		timeout:  time.Second * 20,
 	}
 }
 
@@ -41,5 +45,11 @@ func WithRetryBackoff(bf retry.BackoffFunc) Opt {
 func WithRetryCodes(codes ...codes.Code) Opt {
 	return func(v *options) {
 		v.retry = append(v.retry, retry.WithCodes(codes...))
+	}
+}
+
+func WithTimeout(timeout time.Duration) Opt {
+	return func(v *options) {
+		v.timeout = timeout
 	}
 }
