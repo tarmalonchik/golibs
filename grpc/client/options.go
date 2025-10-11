@@ -12,15 +12,17 @@ import (
 type Opt func(*options)
 
 type options struct {
-	logLevel logrus.Level
-	retry    []retry.CallOption
-	timeout  time.Duration
+	logLevel        logrus.Level
+	retry           []retry.CallOption
+	timeout         time.Duration
+	perRetryTimeout time.Duration
 }
 
 func newDefaultOptions() *options {
 	return &options{
-		logLevel: logrus.ErrorLevel,
-		timeout:  time.Second * 20,
+		logLevel:        logrus.ErrorLevel,
+		timeout:         time.Second * 20,
+		perRetryTimeout: time.Second * 5,
 	}
 }
 
@@ -51,5 +53,11 @@ func WithRetryCodes(codes ...codes.Code) Opt {
 func WithTimeout(timeout time.Duration) Opt {
 	return func(v *options) {
 		v.timeout = timeout
+	}
+}
+
+func WithPerRetryTimeout(timeout time.Duration) Opt {
+	return func(v *options) {
+		v.retry = append(v.retry, retry.WithPerRetryTimeout(timeout))
 	}
 }
