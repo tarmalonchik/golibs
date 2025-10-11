@@ -211,3 +211,44 @@ func (s *GRPCSuite) TestProtoAuthBasicServerAuthEnabled() {
 	case <-ch:
 	}
 }
+
+func (s *GRPCSuite) TestProtoAuthBasicServerAuthEnabledSuccess() {
+	ctx := context.Background()
+
+	conn, err := client.NewConnection(defaultHost, client.WithLogLevel(grpc.LogLevelInfo))
+	s.Require().NoError(err)
+
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	cli := proto.NewEchoClient(conn)
+
+	srv := server.NewServer()
+	srv.AddModifier(func(ctx context.Context, req *proto.EchoRequest) (*proto.EchoResponse, error) {
+		return &proto.EchoResponse{Text: req.GetText()}, nil
+	})
+	srv.Run(netip.MustParseAddrPort(defaultHost), middleware.NewBasicMiddleware(defaultUser, defaultPass))
+	defer srv.Stop()
+
+	ch := make(chan struct{})
+
+	go func() {
+		_, err = cli.EchoAuth(
+			middleware.InjectBasic(ctx, defaultUser, defaultPass),
+			&proto.EchoRequest{
+				Text: defaultText,
+			})
+		s.Require().NoError(err)
+		ch <- struct{}{}
+	}()
+
+	newCtx, c := context.WithTimeout(ctx, time.Second*10)
+	defer c()
+
+	select {
+	case <-newCtx.Done():
+		s.Fail(newCtx.Err().Error())
+	case <-ch:
+	}
+}
