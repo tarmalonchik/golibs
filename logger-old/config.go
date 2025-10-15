@@ -1,4 +1,4 @@
-package logger
+package logger_old
 
 type Config struct {
 	TgBotToken    string `envconfig:"TELEGRAM_BOT_TOKEN" required:"true"`

@@ -1,4 +1,4 @@
-package logger
+package logger_old
 
 import (
 	"context"
@@ -11,7 +11,7 @@ var sendLogsTo = []int64{496869421}
 
 const (
 	tokenTemp  = "/bot%s"
-	clientName = "tg-logger"
+	clientName = "tg-logger-old"
 )
 
 type Client struct {
@@ -26,7 +26,7 @@ func NewClient(conf Config, serverType string) *Client {
 	cl.logger = logrus.New()
 	cl.logger.Hooks.Add(newHooks(conf, sendLogsTo, serverType))
 	if !conf.IsCronJob && conf.Environment != "local" {
-		cl.Infof("logger started")
+		cl.Infof("logger-old started")
 	}
 	return cl
 }
