@@ -35,7 +35,8 @@ func NewLogger(opts ...Opt) *Logger {
 }
 
 func (l *Logger) Close(_ context.Context) error {
-	return l.log.Sync()
+	_ = l.log.Sync()
+	return nil
 }
 
 func (l *Logger) GetLevel() Level {
