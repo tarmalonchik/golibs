@@ -20,11 +20,11 @@ func NewLogger(opts ...Opt) *Logger {
 	}
 
 	var err error
-
-	if l.o.debugMode {
+	if l.GetLevel() == LevelInfo || l.GetLevel() == LevelDebug {
 		l.log, err = zap.NewDevelopment()
+	} else {
+		l.log, err = zap.NewProduction()
 	}
-	l.log, err = zap.NewProduction()
 	if err != nil {
 		panic("create logger: " + err.Error())
 	}
