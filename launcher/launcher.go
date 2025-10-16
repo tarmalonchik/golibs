@@ -38,8 +38,7 @@ type launcher struct {
 	jobsDone  chan interface{}   // the channel to signal when all work done
 }
 
-// NewCore logger is optional field, can be nil
-func NewCore(parallelCount uint8, opts ...Opt) Launcher {
+func NewLauncher(opts ...Opt) Launcher {
 	l := &launcher{}
 
 	for i := range opts {
