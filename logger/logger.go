@@ -28,6 +28,9 @@ func NewLogger(opts ...Opt) *Logger {
 	if err != nil {
 		panic("create logger: " + err.Error())
 	}
+
+	l.log.WithOptions(zap.AddCallerSkip(1))
+
 	return l
 }
 
