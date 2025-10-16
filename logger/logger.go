@@ -29,7 +29,7 @@ func NewLogger(opts ...Opt) *Logger {
 		panic("create logger: " + err.Error())
 	}
 
-	l.log.WithOptions(zap.AddCallerSkip(1))
+	l.log = l.log.WithOptions(zap.AddCallerSkip(1))
 
 	return l
 }
