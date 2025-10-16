@@ -65,7 +65,7 @@ func (l *Logger) Fatal(msg string, fields ...zap.Field) {
 
 func (l *Logger) AddCallerSkip(skip int) *Logger {
 	return &Logger{
-		log: l.log.WithOptions(zap.AddCallerSkip(skip)),
+		log: l.log.WithOptions(zap.AddCallerSkip(skip + 1)),
 		o:   l.o,
 	}
 }
