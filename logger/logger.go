@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"context"
+
 	"go.uber.org/zap"
 )
 
@@ -29,7 +31,7 @@ func NewLogger(opts ...Opt) *Logger {
 	return l
 }
 
-func (l *Logger) Close() error {
+func (l *Logger) Close(_ context.Context) error {
 	return l.log.Sync()
 }
 
