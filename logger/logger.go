@@ -51,10 +51,6 @@ func (l *Logger) Error(msg string, fields ...zap.Field) {
 	l.log.Error(msg, fields...)
 }
 
-func (l *Logger) LogError(err error, fields ...zap.Field) {
-	l.log.Error(err.Error(), fields...)
-}
-
 func (l *Logger) Debug(msg string, fields ...zap.Field) {
 	l.log.Debug(msg, fields...)
 }
