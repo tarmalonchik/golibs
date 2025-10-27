@@ -45,21 +45,33 @@ func (l *Logger) GetLevel() Level {
 
 func (l *Logger) Info(msg string, fields ...zap.Field) {
 	l.log.Info(msg, fields...)
+	l.runSenders(LevelInfo, msg, fields...)
 }
 
 func (l *Logger) Warn(msg string, fields ...zap.Field) {
 	l.log.Warn(msg, fields...)
+	l.runSenders(LevelWarn, msg, fields...)
 }
 
 func (l *Logger) Error(msg string, fields ...zap.Field) {
 	l.log.Error(msg, fields...)
+	l.runSenders(LevelError, msg, fields...)
 }
 
 func (l *Logger) Debug(msg string, fields ...zap.Field) {
 	l.log.Debug(msg, fields...)
+	l.runSenders(LevelDebug, msg, fields...)
 }
 
 func (l *Logger) Fatal(msg string, fields ...zap.Field) {
-	l.log.Fatal("test")
 	l.log.Fatal(msg, fields...)
+	l.runSenders(LevelFatal, msg, fields...)
+}
+
+func (l *Logger) runSenders(lvl Level, msg string, fields ...zap.Field) {
+	go func() {
+		for i := range l.o.senders {
+			l.o.senders[i](lvl, msg, fields...)
+		}
+	}()
 }
