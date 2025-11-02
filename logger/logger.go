@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Logger struct {
@@ -20,13 +21,24 @@ func NewLogger(opts ...Opt) *Logger {
 	}
 
 	var err error
-	if l.GetLevel() == LevelInfo || l.GetLevel() == LevelDebug {
-		l.log, err = zap.NewDevelopment()
+	var cfg zap.Config
+
+	if l.GetLevel() == LevelInfo || l.GetLevel() == LevelDebug || l.GetLevel() == LevelWarn {
+		cfg = zap.NewDevelopmentConfig()
 	} else {
-		l.log, err = zap.NewProduction()
+		cfg = zap.NewProductionConfig()
 	}
+
+	zapLvl, err := zapcore.ParseLevel(l.o.level.String())
 	if err != nil {
-		panic("create logger: " + err.Error())
+		panic("create logger lvl: " + err.Error())
+	}
+
+	cfg.Level = zap.NewAtomicLevel()
+	cfg.Level.SetLevel(zapLvl)
+
+	if l.log, err = cfg.Build(); err != nil {
+		panic("build logger: " + err.Error())
 	}
 
 	l.log = l.log.WithOptions(zap.AddCallerSkip(1))
