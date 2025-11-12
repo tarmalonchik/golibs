@@ -70,6 +70,10 @@ func (c *consumer) ReadOnlyOne() {
 }
 
 func (c *consumer) SetLastExistingMessageOffset() error {
+	if err := c.client.RefreshMetadata(c.topic); err != nil {
+		return err
+	}
+
 	offset, err := c.client.GetOffset(c.topic, c.partition, sarama.OffsetNewest)
 	if err != nil {
 		return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
