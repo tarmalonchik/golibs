@@ -43,7 +43,11 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	var err error
 
 	for i := range conf.KafkaControllersCount {
-		out.brokers = append(out.brokers, strings.Join([]string{fmt.Sprintf(conf.KafkaBrokerURLTemplate, i), conf.KafkaPort}, ":"))
+		if conf.KafkaPort != "" {
+			out.brokers = append(out.brokers, strings.Join([]string{fmt.Sprintf(conf.KafkaBrokerURLTemplate, i), conf.KafkaPort}, ":"))
+		} else {
+			out.brokers = append(out.brokers, fmt.Sprintf(conf.KafkaBrokerURLTemplate, i))
+		}
 	}
 	out.client, err = sarama.NewClient(out.brokers, config)
 	if err != nil {
