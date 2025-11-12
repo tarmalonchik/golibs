@@ -73,7 +73,9 @@ func (c *consumer) SetLastExistingMessageOffset() error {
 	if err != nil {
 		return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
 	}
-	c.offset = offset
+	if offset > 0 {
+		c.offset = offset - 1
+	}
 	return nil
 }
 
