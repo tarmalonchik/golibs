@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/avast/retry-go"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
@@ -72,16 +73,33 @@ func (c *consumer) ReadOnlyOne() {
 }
 
 func (c *consumer) SetLastExistingMessageOffset() error {
-	if err := c.client.RefreshMetadata(c.topic); err != nil {
-		return err
-	}
+	err := retry.Do(
+		func() error {
+			if err := c.client.RefreshMetadata(c.topic); err != nil {
+				return err
+			}
 
-	offset, err := c.client.GetOffset(c.topic, c.partition, sarama.OffsetNewest)
+			offset, err := c.client.GetOffset(c.topic, c.partition, sarama.OffsetNewest)
+			if err != nil {
+				return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
+			}
+			if offset > 0 {
+				c.offset = offset - 1
+			}
+			return nil
+		},
+		retry.RetryIf(func(err error) bool {
+			if errors.Is(err, sarama.ErrUnknownTopicOrPartition) {
+				return true
+			}
+			return false
+		}),
+		retry.Attempts(10),
+		retry.Context(context.Background()),
+		retry.DelayType(retry.FixedDelay),
+	)
 	if err != nil {
-		return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
-	}
-	if offset > 0 {
-		c.offset = offset - 1
+		return err
 	}
 	return nil
 }
