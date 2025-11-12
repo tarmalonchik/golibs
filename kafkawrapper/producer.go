@@ -14,6 +14,7 @@ type producer struct {
 	pro           sarama.SyncProducer
 	topic         string
 	numPartitions int32
+	logger        CustomLogger
 }
 
 func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error) {
@@ -25,6 +26,7 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 		pro:           pro,
 		topic:         topic,
 		numPartitions: numPartitions,
+		logger:        c.logger,
 	}
 
 	if createTopic {
@@ -38,6 +40,8 @@ func (p *producer) SendMessage(msg []byte, key string) error {
 	if err != nil {
 		return trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
+
+	p.logger.Infof("sending message to partition: %d topic: %s", pNum, p.topic)
 
 	_, _, err = p.pro.SendMessage(&sarama.ProducerMessage{
 		Topic:     p.topic,
