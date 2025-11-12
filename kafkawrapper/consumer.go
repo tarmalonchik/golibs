@@ -29,6 +29,7 @@ type consumer struct {
 	offset         int64
 	ctx            context.Context
 	cancel         context.CancelFunc
+	logger         CustomLogger
 	readOnlyOneMsg bool
 }
 
@@ -55,6 +56,7 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	out.topic = topic
 	out.partition = part
 	out.client = c.client
+	out.logger = c.logger
 	go out.trackContext()
 	return &out, nil
 }
@@ -75,6 +77,8 @@ func (c *consumer) ReadOnlyOne() {
 func (c *consumer) SetLastExistingMessageOffset() error {
 	err := retry.Do(
 		func() error {
+			c.logger.Infof("try to get last existing message offset")
+
 			if err := c.client.RefreshMetadata(c.topic); err != nil {
 				return err
 			}
@@ -83,9 +87,13 @@ func (c *consumer) SetLastExistingMessageOffset() error {
 			if err != nil {
 				return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
 			}
+
 			if offset > 0 {
 				c.offset = offset - 1
 			}
+
+			c.logger.Infof("try to get last existing message offset success")
+
 			return nil
 		},
 		retry.RetryIf(func(err error) bool {
