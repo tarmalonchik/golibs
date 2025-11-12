@@ -20,6 +20,7 @@ type Client interface {
 
 type CustomLogger interface {
 	Errorf(err error, format string, args ...any)
+	Infof(format string, args ...any)
 }
 type client struct {
 	brokers []string
@@ -75,17 +76,21 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 	return partNum, nil
 }
 
-func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
+func (c *client) createTopic(brokers []string, topic string, numPartitions int32) {
 	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
 	if err != nil {
-		return trace.FuncNameWithErrorMsg(err, "creating kafka admin")
+		c.logger.Errorf(err, "create kafka admin: %v", err.Error())
+		return
 	}
-	err = adm.CreateTopic(topic, &sarama.TopicDetail{
-		NumPartitions:     numPartitions,
-		ReplicationFactor: c.conf.KafkaReplicationFactor,
-	}, false)
+	err = adm.CreateTopic(
+		topic,
+		&sarama.TopicDetail{
+			NumPartitions:     numPartitions,
+			ReplicationFactor: c.conf.KafkaReplicationFactor,
+		},
+		false,
+	)
 	if err != nil && c.logger != nil {
-		c.logger.Errorf(trace.FuncNameWithError(err), "create topic")
+		c.logger.Infof("create kafka admin: %v", err.Error())
 	}
-	return nil
 }

@@ -28,7 +28,7 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 	}
 
 	if createTopic {
-		_ = c.createTopic(c.brokers, topic, numPartitions)
+		c.createTopic(c.brokers, topic, numPartitions)
 	}
 	return &out, nil
 }
