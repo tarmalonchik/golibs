@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/IBM/sarama"
 
@@ -42,7 +43,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	var err error
 
 	for i := range conf.KafkaControllersCount {
-		out.brokers = append(out.brokers, fmt.Sprintf(brokerTemplate, fmt.Sprintf(conf.KafkaBrokerURLTemplate, i), conf.KafkaPort))
+		out.brokers = append(out.brokers, strings.Join([]string{fmt.Sprintf(conf.KafkaBrokerURLTemplate, i), conf.KafkaPort}, ":"))
 	}
 	out.client, err = sarama.NewClient(out.brokers, config)
 	if err != nil {
