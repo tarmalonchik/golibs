@@ -105,6 +105,7 @@ func (c *consumer) SetLastExistingMessageOffset() error {
 		retry.Attempts(10),
 		retry.Context(context.Background()),
 		retry.DelayType(retry.FixedDelay),
+		retry.Delay(5*time.Second),
 	)
 	if err != nil {
 		return err
