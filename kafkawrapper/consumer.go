@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -70,7 +71,7 @@ func (c *consumer) ReadOnlyOne() {
 func (c *consumer) SetTimeOffset(time time.Time) error {
 	offset, err := c.client.GetOffset(c.topic, c.partition, time.UTC().UnixMilli())
 	if err != nil {
-		return err
+		return fmt.Errorf("topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
 	}
 	c.offset = offset
 	return nil
