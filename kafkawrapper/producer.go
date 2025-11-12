@@ -28,9 +28,7 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 	}
 
 	if createTopic {
-		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
-			return nil, trace.FuncNameWithErrorMsg(err, "creating topic")
-		}
+		_ = c.createTopic(c.brokers, topic, numPartitions)
 	}
 	return &out, nil
 }
