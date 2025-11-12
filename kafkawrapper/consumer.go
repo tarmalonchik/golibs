@@ -68,10 +68,19 @@ func (c *consumer) ReadOnlyOne() {
 	c.readOnlyOneMsg = true
 }
 
+func (c *consumer) SetLastExistingMessageOffset() error {
+	offset, err := c.client.GetOffset(c.topic, c.partition, sarama.OffsetNewest)
+	if err != nil {
+		return fmt.Errorf("getting last existing offset topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
+	}
+	c.offset = offset
+	return nil
+}
+
 func (c *consumer) SetTimeOffset(time time.Time) error {
 	offset, err := c.client.GetOffset(c.topic, c.partition, time.UTC().UnixMilli())
 	if err != nil {
-		return fmt.Errorf("topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
+		return fmt.Errorf("getting offset by time topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
 	}
 	c.offset = offset
 	return nil
