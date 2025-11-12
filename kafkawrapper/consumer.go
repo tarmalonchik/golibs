@@ -17,6 +17,7 @@ type Consumer interface {
 	SetOffset(offset int64)
 	SetTimeOffset(time time.Time) error
 	ReadOnlyOne()
+	SetLastExistingMessageOffset() error
 }
 
 type consumer struct {
