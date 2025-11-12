@@ -30,7 +30,9 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 	}
 
 	if createTopic {
-		c.createTopic(c.brokers, topic, numPartitions)
+		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, trace.FuncNameWithError(err)
+		}
 	}
 	return &out, nil
 }

@@ -81,11 +81,10 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 	return partNum, nil
 }
 
-func (c *client) createTopic(brokers []string, topic string, numPartitions int32) {
+func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
 	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
 	if err != nil {
-		c.logger.Errorf(err, "create kafka admin: %v", err.Error())
-		return
+		return err
 	}
 	err = adm.CreateTopic(
 		topic,
@@ -95,7 +94,10 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 		},
 		false,
 	)
-	if err != nil && c.logger != nil {
-		c.logger.Infof("create topic: %v", err.Error())
+	if err != nil {
+		if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
+			return err
+		}
 	}
+	return nil
 }

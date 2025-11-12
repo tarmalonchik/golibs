@@ -36,7 +36,9 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	var err error
 
 	if createTopic {
-		c.createTopic(c.brokers, topic, numPartitions)
+		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, trace.FuncNameWithError(err)
+		}
 	}
 
 	part, err := getPartitionNumberWithKey(topic, key, numPartitions)
