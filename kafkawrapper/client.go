@@ -91,6 +91,6 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 		false,
 	)
 	if err != nil && c.logger != nil {
-		c.logger.Infof("create kafka admin: %v", err.Error())
+		c.logger.Infof("create topic: %v", err.Error())
 	}
 }
