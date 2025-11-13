@@ -43,8 +43,6 @@ func (p *producer) SendMessage(msg []byte, key string) error {
 		return trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
 
-	p.logger.Infof("sending message to partition: %d topic: %s", pNum, p.topic)
-
 	_, _, err = p.pro.SendMessage(&sarama.ProducerMessage{
 		Topic:     p.topic,
 		Value:     sarama.ByteEncoder(msg),
