@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -37,6 +39,10 @@ func main() {
 	hashFileName := "data"
 	applicationsFileName := "applications"
 
+	if err := os.RemoveAll(binPath); err != nil {
+		panic(err)
+	}
+
 	dirs, err := os.ReadDir(goSourcesPath)
 	if err != nil {
 		panic(err)
@@ -49,17 +55,26 @@ func main() {
 		}
 	}
 
+	errG := errgroup.Group{}
+
 	for i := range dirNames {
-		cmd := exec.Command(
-			"go",
-			"build",
-			"-o",
-			filepath.Join(binPath, dirNames[i]),
-			filepath.Join(goSourcesPath, dirNames[i], "main.go"),
-		)
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
+		errG.Go(func() error {
+			cmd := exec.Command(
+				"go",
+				"build",
+				"-o",
+				filepath.Join(binPath, dirNames[i]),
+				filepath.Join(goSourcesPath, dirNames[i], "main.go"),
+			)
+			if err := cmd.Run(); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	if err := errG.Wait(); err != nil {
+		panic(err)
 	}
 
 	bins, err := os.ReadDir(binPath)
