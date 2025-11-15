@@ -9,6 +9,14 @@ WORKDIR /hasher
 
 RUN mkdir bin
 
+WORKDIR /entrypoint
+
 COPY main.go /entrypoint/main.go
 
-CMD ["go", "run", "/entrypoint/main.go"]
+RUN go mod init github.com/tarmalonchik/golibs/gohash
+RUN go mod tidy
+RUN go build -o main main.go
+
+WORKDIR /hasher
+
+CMD ["/entrypoint/main"]
