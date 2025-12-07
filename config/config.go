@@ -9,7 +9,7 @@ import (
 
 func Load(conf interface{}, configFile string) error {
 	configs := make([]string, 1)
-	configs = append(configs, "./config/.env")
+	configs = append(configs, "./configs/.env")
 	configs = append(configs, configFile)
 
 	if err := godotenv.Load(configs...); err != nil {
