@@ -8,8 +8,12 @@ import (
 )
 
 func Load(conf interface{}, configFile string) error {
-	if err := godotenv.Load(configFile); err != nil {
-		log.WithField("filenames", configFile).Info("config file not found, using defaults")
+	configs := make([]string, 1)
+	configs = append(configs, "./config/.env")
+	configs = append(configs, configFile)
+
+	if err := godotenv.Load(configs...); err != nil {
+		log.WithField("filenames", configs).Info("config file not found, using defaults")
 	}
 
 	if err := envconfig.Process("", conf); err != nil {
