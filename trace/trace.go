@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+func FuncNameWithSkip(skip int) error {
+	pc := make([]uintptr, 15)
+	n := runtime.Callers(skip, pc)
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+	return errors.New(getFunctionLast(frame.Function))
+}
+
 func FuncName() error {
 	pc := make([]uintptr, 15)
 	n := runtime.Callers(2, pc)

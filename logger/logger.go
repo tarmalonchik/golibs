@@ -68,7 +68,7 @@ func (l *Logger) Warn(msg string, fields ...zap.Field) {
 
 func (l *Logger) Error(msg string, fields ...zap.Field) {
 	l.log.Error(msg, fields...)
-	fields = append(fields, zap.String("stacktrace", trace.FuncName().Error()))
+	fields = append(fields, zap.String("stacktrace", trace.FuncNameWithSkip(3).Error()))
 	l.runSenders(LevelError, msg, fields...)
 }
 
