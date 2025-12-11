@@ -2,7 +2,8 @@ package logger
 
 import (
 	"context"
-	"runtime/debug"
+	"fmt"
+	"runtime"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -68,7 +69,7 @@ func (l *Logger) Warn(msg string, fields ...zap.Field) {
 
 func (l *Logger) Error(msg string, fields ...zap.Field) {
 	l.log.Error(msg, fields...)
-	fields = append(fields, zap.String("stacktrace", string(debug.Stack())))
+	fields = append(fields, zap.String("stacktrace", callerField(1)))
 	l.runSenders(LevelError, msg, fields...)
 }
 
@@ -88,4 +89,19 @@ func (l *Logger) runSenders(lvl Level, msg string, fields ...zap.Field) {
 			l.o.senders[i](lvl, msg, fields...)
 		}
 	}()
+}
+
+func callerField(skip int) string {
+	pc, file, line, ok := runtime.Caller(skip)
+	if !ok {
+		return ""
+	}
+
+	fn := runtime.FuncForPC(pc)
+	name := ""
+	if fn != nil {
+		name = fn.Name()
+	}
+
+	return fmt.Sprintf("%s:%d (%s)", file, line, name)
 }
