@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/IBM/sarama"
 
@@ -15,8 +16,8 @@ var ErrInvalidKey = errors.New("invalid key consumed")
 
 type Client interface {
 	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
-	NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error)
-	NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error)
+	NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error)
+	NewConsumerGroup(ctx context.Context, topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error)
 }
 
 type CustomLogger interface {
@@ -81,23 +82,38 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 	return partNum, nil
 }
 
-func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
-	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
-	if err != nil {
-		return err
-	}
-	err = adm.CreateTopic(
-		topic,
-		&sarama.TopicDetail{
-			NumPartitions:     numPartitions,
-			ReplicationFactor: c.conf.KafkaReplicationFactor,
-		},
-		false,
-	)
-	if err != nil {
-		if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
-			return err
+func (c *client) createTopic(ctx context.Context, brokers []string, topic string, numPartitions int32) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	go func() {
+		defer cancel()
+
+		adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
+		if err != nil && c.logger != nil {
+			c.logger.Errorf(err, "creating cluster admin")
+			return
 		}
-	}
-	return nil
+		defer func() {
+			_ = adm.Close()
+		}()
+
+		err = adm.CreateTopic(
+			topic,
+			&sarama.TopicDetail{
+				NumPartitions:     numPartitions,
+				ReplicationFactor: c.conf.KafkaReplicationFactor,
+			},
+			false,
+		)
+		if err != nil && c.logger != nil {
+			if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
+				c.logger.Errorf(err, "creating topic %s", topic)
+			}
+		}
+	}()
+
+	<-ctx.Done()
+
+	return
 }

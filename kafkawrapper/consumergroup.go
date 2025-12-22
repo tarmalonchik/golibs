@@ -23,9 +23,13 @@ type consumerGroup struct {
 	logger   CustomLogger
 }
 
-func (c *client) NewConsumerGroup(ctx context.Context, topic, group string) (ConsumerGroup, error) {
+func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
 	var out consumerGroup
 	var err error
+
+	if createTopic {
+		c.createTopic(ctx, c.brokers, topic, numPartitions)
+	}
 
 	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, c.client.Config())

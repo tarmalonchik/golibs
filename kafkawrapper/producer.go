@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"context"
+
 	"github.com/IBM/sarama"
 
 	"github.com/tarmalonchik/golibs/trace"
@@ -17,7 +19,7 @@ type producer struct {
 	logger        CustomLogger
 }
 
-func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic bool) (Producer, error) {
+func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error) {
 	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
@@ -30,9 +32,7 @@ func (c *client) NewSyncProducer(topic string, numPartitions int32, createTopic 
 	}
 
 	if createTopic {
-		if err = c.createTopic(c.brokers, topic, numPartitions); err != nil {
-			return nil, trace.FuncNameWithError(err)
-		}
+		c.createTopic(ctx, c.brokers, topic, numPartitions)
 	}
 	return &out, nil
 }
