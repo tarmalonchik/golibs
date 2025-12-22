@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 
 	"github.com/IBM/sarama"
 
@@ -20,10 +21,15 @@ type producer struct {
 }
 
 func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error) {
+	if topic == "" {
+		return nil, errors.New("empty topic")
+	}
+
 	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
 	}
+
 	out := producer{
 		pro:           pro,
 		topic:         topic,

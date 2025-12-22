@@ -34,6 +34,10 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	var out consumer
 	var err error
 
+	if topic == "" {
+		return nil, errors.New("empty topic")
+	}
+
 	if createTopic {
 		c.createTopic(ctx, c.brokers, topic, numPartitions)
 	}

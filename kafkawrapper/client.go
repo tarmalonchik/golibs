@@ -108,7 +108,7 @@ func (c *client) createTopic(ctx context.Context, brokers []string, topic string
 		)
 		if err != nil && c.logger != nil {
 			if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
-				c.logger.Errorf(err, "creating topic %s", topic)
+				c.logger.Errorf(err, "creating topic name:\"%s\"", topic)
 			}
 		}
 	}()

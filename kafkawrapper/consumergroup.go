@@ -27,6 +27,10 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 	var out consumerGroup
 	var err error
 
+	if topic == "" {
+		return nil, errors.New("empty topic")
+	}
+
 	if createTopic {
 		c.createTopic(ctx, c.brokers, topic, numPartitions)
 	}
@@ -39,7 +43,9 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 	out.topic = topic
 	out.client = c.client
 	out.logger = c.logger
+
 	go out.trackContext()
+
 	return &out, nil
 }
 
