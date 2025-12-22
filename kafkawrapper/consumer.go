@@ -28,6 +28,7 @@ type consumer struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
 	readOnlyOneMsg bool
+	logger         CustomLogger
 }
 
 func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
@@ -54,6 +55,7 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	}
 	out.topic = topic
 	out.partition = part
+	out.logger = c.logger
 	out.client = c.client
 	go out.trackContext()
 	return &out, nil
@@ -111,6 +113,9 @@ func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProces
 	for {
 		select {
 		case <-c.ctx.Done():
+			if c.logger != nil {
+				c.logger.Infof("closing consumer: %s", c.topic)
+			}
 			return nil
 		case msg := <-partConsumer.Messages():
 			err = processorFunc(c.ctx, msg.Value, string(msg.Key))

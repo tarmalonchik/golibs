@@ -62,6 +62,9 @@ func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFun
 	for {
 		select {
 		case <-c.ctx.Done():
+			if c.logger != nil {
+				c.logger.Infof("closing consumer group: %s", c.topic)
+			}
 			return nil
 		default:
 			h := handler{
