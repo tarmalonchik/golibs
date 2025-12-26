@@ -12,6 +12,12 @@ import (
 	"github.com/tarmalonchik/golibs/magefile"
 )
 
+func Bump() {
+	loadEnv()
+
+	magefile.Bump()
+}
+
 func LintFix() error {
 	loadEnv()
 

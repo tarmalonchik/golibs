@@ -15,6 +15,14 @@ var (
 	isolationTestsFilePath = "test/cases"
 )
 
+func Bump() {
+	if err := sh.Run("./scripts/git_increment_tag.bash"); err != nil {
+		fmt.Println("Failed to run bump", err)
+		os.Exit(1) //nolint:revive
+	}
+	os.Exit(0) //nolint:revive
+}
+
 func TestIsolation() {
 	_, err := os.Stat(isolationTestsFilePath)
 	if os.IsNotExist(err) {
