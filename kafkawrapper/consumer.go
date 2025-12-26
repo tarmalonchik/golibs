@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -29,6 +30,7 @@ type consumer struct {
 	cancel         context.CancelFunc
 	readOnlyOneMsg bool
 	logger         CustomLogger
+	once           func()
 }
 
 func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
@@ -40,7 +42,9 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	}
 
 	if createTopic {
-		c.createTopic(ctx, c.brokers, topic, numPartitions)
+		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, err
+		}
 	}
 
 	part, err := getPartitionNumberWithKey(topic, key, numPartitions)
@@ -48,22 +52,23 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 		return nil, trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
 
+	out = consumer{
+		topic:     topic,
+		partition: part,
+		logger:    c.logger,
+		client:    c.client,
+	}
+
 	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "create consumer")
 	}
-	out.topic = topic
-	out.partition = part
-	out.logger = c.logger
-	out.client = c.client
-	go out.trackContext()
-	return &out, nil
-}
 
-func (c *consumer) trackContext() {
-	<-c.ctx.Done()
-	_ = c.con.Close()
+	out.once = sync.OnceFunc(func() {
+		_ = out.con.Close()
+	})
+	return &out, nil
 }
 
 func (c *consumer) SetOffset(offset int64) {
@@ -102,6 +107,7 @@ func (c *consumer) SetTimeOffset(time time.Time) error {
 
 func (c *consumer) Close() {
 	c.cancel()
+	c.once()
 }
 
 func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
@@ -113,6 +119,7 @@ func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProces
 	for {
 		select {
 		case <-c.ctx.Done():
+			c.once()
 			if c.logger != nil {
 				c.logger.Infof("closing consumer: %s", c.topic)
 			}
@@ -126,9 +133,11 @@ func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProces
 			if postProcessor != nil {
 				postProcessor(err)
 			}
+
 			if err != nil {
 				continue
 			}
+
 			if c.readOnlyOneMsg {
 				c.cancel()
 				return nil

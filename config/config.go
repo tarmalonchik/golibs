@@ -11,7 +11,9 @@ import (
 
 func Load(conf interface{}, configFile string) error {
 	configs := make([]string, 0, 2)
+
 	path := "./configs/.env"
+
 	if _, err := os.Stat(path); err == nil {
 		configs = append(configs, path)
 	}

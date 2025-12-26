@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/IBM/sarama"
 
@@ -11,6 +12,7 @@ import (
 
 type Producer interface {
 	SendMessage(msg []byte, key string) error
+	Close()
 }
 
 type producer struct {
@@ -18,6 +20,10 @@ type producer struct {
 	topic         string
 	numPartitions int32
 	logger        CustomLogger
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	once   func()
 }
 
 func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error) {
@@ -35,10 +41,17 @@ func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartition
 		topic:         topic,
 		numPartitions: numPartitions,
 		logger:        c.logger,
+		once: sync.OnceFunc(func() {
+			_ = pro.Close()
+		}),
 	}
 
+	out.ctx, out.cancel = context.WithCancel(ctx)
+
 	if createTopic {
-		c.createTopic(ctx, c.brokers, topic, numPartitions)
+		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, err
+		}
 	}
 	return &out, nil
 }
@@ -49,11 +62,22 @@ func (p *producer) SendMessage(msg []byte, key string) error {
 		return trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
 
-	_, _, err = p.pro.SendMessage(&sarama.ProducerMessage{
-		Topic:     p.topic,
-		Value:     sarama.ByteEncoder(msg),
-		Partition: pNum,
-		Key:       sarama.StringEncoder(key),
-	})
+	select {
+	case <-p.ctx.Done():
+		p.once()
+		return context.Canceled
+	default:
+		_, _, err = p.pro.SendMessage(&sarama.ProducerMessage{
+			Topic:     p.topic,
+			Value:     sarama.ByteEncoder(msg),
+			Partition: pNum,
+			Key:       sarama.StringEncoder(key),
+		})
+	}
 	return err
+}
+
+func (p *producer) Close() {
+	p.cancel()
+	p.once()
 }

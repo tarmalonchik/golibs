@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/IBM/sarama"
 
@@ -82,38 +81,30 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 	return partNum, nil
 }
 
-func (c *client) createTopic(ctx context.Context, brokers []string, topic string, numPartitions int32) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-
-	go func() {
-		defer cancel()
-
-		adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
-		if err != nil && c.logger != nil {
-			c.logger.Errorf(err, "creating cluster admin")
-			return
-		}
-		defer func() {
-			_ = adm.Close()
-		}()
-
-		err = adm.CreateTopic(
-			topic,
-			&sarama.TopicDetail{
-				NumPartitions:     numPartitions,
-				ReplicationFactor: c.conf.KafkaReplicationFactor,
-			},
-			false,
-		)
-		if err != nil && c.logger != nil {
-			if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
-				c.logger.Errorf(err, "creating topic name:\"%s\"", topic)
-			}
-		}
+func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
+	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
+	if err != nil && c.logger != nil {
+		c.logger.Errorf(err, "creating cluster admin")
+		return nil
+	}
+	defer func() {
+		_ = adm.Close()
 	}()
 
-	<-ctx.Done()
+	err = adm.CreateTopic(
+		topic,
+		&sarama.TopicDetail{
+			NumPartitions:     numPartitions,
+			ReplicationFactor: c.conf.KafkaReplicationFactor,
+		},
+		false,
+	)
+	if err != nil && c.logger != nil {
+		if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
+			c.logger.Errorf(err, "creating topic name:\"%s\"", topic)
+			return err
+		}
+	}
 
-	return
+	return nil
 }

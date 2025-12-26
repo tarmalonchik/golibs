@@ -3,6 +3,8 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync"
 
 	"github.com/IBM/sarama"
 
@@ -21,6 +23,7 @@ type consumerGroup struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	logger   CustomLogger
+	once     func()
 }
 
 func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
@@ -32,7 +35,9 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 	}
 
 	if createTopic {
-		c.createTopic(ctx, c.brokers, topic, numPartitions)
+		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+			return nil, err
+		}
 	}
 
 	out.ctx, out.cancel = context.WithCancel(ctx)
@@ -43,25 +48,23 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 	out.topic = topic
 	out.client = c.client
 	out.logger = c.logger
-
-	go out.trackContext()
+	out.once = sync.OnceFunc(func() {
+		_ = out.conGroup.Close()
+	})
 
 	return &out, nil
 }
 
-func (c *consumerGroup) trackContext() {
-	<-c.ctx.Done()
-	_ = c.conGroup.Close()
-}
-
 func (c *consumerGroup) Close() {
 	c.cancel()
+	c.once()
 }
 
 func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFuncCG) error {
 	for {
 		select {
 		case <-c.ctx.Done():
+			c.once()
 			if c.logger != nil {
 				c.logger.Infof("closing consumer group: %s", c.topic)
 			}
@@ -85,22 +88,36 @@ type handler struct {
 	ctx           context.Context
 }
 
-func (c handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (c handler) Setup(_ sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error {
+	return nil
+}
+
 func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	for msg := range claim.Messages() {
-		err := c.processor(c.ctx, msg.Value, string(msg.Key))
-		if errors.Is(err, ErrInvalidKey) {
-			continue
-		}
-		if c.postProcessor != nil {
-			if commit := c.postProcessor(err); commit {
+	fmt.Println("cha")
+	select {
+	case <-sess.Context().Done():
+		return nil
+	default:
+		for msg := range claim.Messages() {
+			err := c.processor(c.ctx, msg.Value, string(msg.Key))
+			if errors.Is(err, ErrInvalidKey) {
+				continue
+			}
+
+			if c.postProcessor != nil {
+				if commit := c.postProcessor(err); commit {
+					sess.MarkMessage(msg, "")
+				}
+				continue
+			}
+
+			if err != nil {
 				sess.MarkMessage(msg, "")
 			}
-			continue
-		}
-		if err != nil {
-			sess.MarkMessage(msg, "")
 		}
 	}
 	return nil
