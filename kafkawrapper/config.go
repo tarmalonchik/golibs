@@ -11,7 +11,7 @@ type PostProcessorFunc func(err error)
 
 var (
 	ErrTopicIsEmpty                  = errors.New("empty topic")
-	ErrShouldHaveAtLeastOnePartition = errors.New("empty topic")
+	ErrShouldHaveAtLeastOnePartition = errors.New("should have at least one partition")
 )
 
 type Config struct {
