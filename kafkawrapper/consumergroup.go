@@ -101,7 +101,6 @@ func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 
 func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	fmt.Println("cha")
 	select {
 	case <-sess.Context().Done():
 		return nil
