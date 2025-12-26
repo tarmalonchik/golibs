@@ -2,11 +2,17 @@ package kafka
 
 import (
 	"context"
+	"errors"
 )
 
 type ProcessorFunc func(ctx context.Context, msg []byte, key string) error
 type PostProcessorFuncCG func(err error) (commit bool)
 type PostProcessorFunc func(err error)
+
+var (
+	ErrTopicIsEmpty                  = errors.New("empty topic")
+	ErrShouldHaveAtLeastOnePartition = errors.New("empty topic")
+)
 
 type Config struct {
 	KafkaPassword          string `envconfig:"KAFKA_PASSWORD" required:"true"`

@@ -38,7 +38,11 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 	var err error
 
 	if topic == "" {
-		return nil, errors.New("empty topic")
+		return nil, ErrTopicIsEmpty
+	}
+
+	if numPartitions < 1 {
+		return nil, ErrShouldHaveAtLeastOnePartition
 	}
 
 	if createTopic {
