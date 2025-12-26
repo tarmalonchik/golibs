@@ -32,13 +32,13 @@ func (s *OneConsumeTestSuite) TestOnceConsume() {
 		err = p.SendMessage(msg, "")
 		s.Require().NoError(err)
 
-		c, err := s.Kafka.NewConsumer(ctx, topic, "", 1, true)
+		c, err := s.Kafka.NewConsumer(topic, "", 1, true)
 		s.Require().NoError(err)
 		c.ReadOnlyOne()
 
 		ch := make(chan struct{})
 
-		err = c.Process(
+		err = c.Process(ctx,
 			func(ctx context.Context, readMsg []byte, key string) error {
 				s.Require().Equal(msg, readMsg)
 				close(ch)

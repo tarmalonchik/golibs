@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
@@ -11,21 +12,20 @@ import (
 )
 
 type ConsumerGroup interface {
-	Close()
-	Process(processorFunc ProcessorFunc, postProcessor PostProcessorFuncCG) error
+	Close() error
+	Process(ctx context.Context, processorFunc ProcessorFunc, postProcessor PostProcessorFuncCG) error
 }
 
 type consumerGroup struct {
 	client   sarama.Client
 	conGroup sarama.ConsumerGroup
 	topic    string
-	ctx      context.Context
-	cancel   context.CancelFunc
 	logger   CustomLogger
 	once     func()
+	cancel   context.CancelFunc
 }
 
-func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
+func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
 	var out consumerGroup
 	var err error
 
@@ -43,7 +43,6 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 		}
 	}
 
-	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating consumer group")
@@ -58,15 +57,21 @@ func (c *client) NewConsumerGroup(ctx context.Context, topic, group string, numP
 	return &out, nil
 }
 
-func (c *consumerGroup) Close() {
+func (c *consumerGroup) Close() error {
+	if c.cancel == nil {
+		return fmt.Errorf("consumer group has never started")
+	}
 	c.cancel()
 	c.once()
+	return nil
 }
 
-func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFuncCG) error {
+func (c *consumerGroup) Process(ctx context.Context, processorFunc ProcessorFunc, pp PostProcessorFuncCG) error {
+	ctx, c.cancel = context.WithCancel(ctx)
+
 	for {
 		select {
-		case <-c.ctx.Done():
+		case <-ctx.Done():
 			c.once()
 			if c.logger != nil {
 				c.logger.Infof("closing consumer group: %s", c.topic)
@@ -76,9 +81,13 @@ func (c *consumerGroup) Process(processorFunc ProcessorFunc, pp PostProcessorFun
 			h := handler{
 				processor:     processorFunc,
 				postProcessor: pp,
-				ctx:           c.ctx,
+				ctx:           ctx,
 			}
-			if err := c.conGroup.Consume(c.ctx, []string{c.topic}, &h); err != nil && c.logger != nil {
+			if err := c.conGroup.Consume(ctx, []string{c.topic}, &h); err != nil {
+
+				if c.logger == nil {
+					return nil
+				}
 				c.logger.Errorf(trace.FuncNameWithError(err), "processing consumer group")
 			}
 		}
@@ -104,7 +113,10 @@ func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 		select {
 		case <-sess.Context().Done():
 			return nil
-		case msg := <-claim.Messages():
+		case msg, ok := <-claim.Messages():
+			if !ok {
+				return nil
+			}
 			err := c.processor(c.ctx, msg.Value, string(msg.Key))
 			if errors.Is(err, ErrInvalidKey) {
 				continue

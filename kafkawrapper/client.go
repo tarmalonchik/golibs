@@ -14,9 +14,9 @@ import (
 var ErrInvalidKey = errors.New("invalid key consumed")
 
 type Client interface {
-	NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
+	NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
 	NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error)
-	NewConsumerGroup(ctx context.Context, topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error)
+	NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error)
 }
 
 type CustomLogger interface {

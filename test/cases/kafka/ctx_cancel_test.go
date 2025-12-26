@@ -49,14 +49,14 @@ func (s *CtxCancelTestSuite) TestConsumer() {
 		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumer(ctx, lo.RandomString(10, alphabet), "", 1, true)
+		p, err := s.Kafka.NewConsumer(lo.RandomString(10, alphabet), "", 1, true)
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
 
 		go func() {
 			for {
-				err = p.Process(func(ctx context.Context, msg []byte, key string) error {
+				err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 					return nil
 				}, func(err error) {})
 				s.Require().NoError(err)
@@ -74,13 +74,13 @@ func (s *CtxCancelTestSuite) TestConsumerGroup() {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumerGroup(ctx, lo.RandomString(10, alphabet), "test", 1, true)
+		p, err := s.Kafka.NewConsumerGroup(lo.RandomString(10, alphabet), "test", 1, true)
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
 
 		go func() {
-			err = p.Process(func(ctx context.Context, msg []byte, key string) error {
+			err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 				return nil
 			}, func(err error) bool {
 				return true

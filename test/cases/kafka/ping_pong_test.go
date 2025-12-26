@@ -31,7 +31,7 @@ func (s *PingPongTestSuite) TestPingPong() {
 		p, err := s.Kafka.NewSyncProducer(ctx, topic, 1, true)
 		s.Require().NoError(err)
 
-		c, err := s.Kafka.NewConsumer(ctx, topic, "", 1, true)
+		c, err := s.Kafka.NewConsumer(topic, "", 1, true)
 		s.Require().NoError(err)
 
 		mp := make(map[int]struct{})
@@ -51,7 +51,7 @@ func (s *PingPongTestSuite) TestPingPong() {
 		}()
 
 		go func() {
-			err = c.Process(func(ctx context.Context, msg []byte, key string) error {
+			err = c.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 				mx.Lock()
 				num, err := strconv.Atoi(string(msg))
 				s.Require().NoError(err)

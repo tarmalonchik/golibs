@@ -12,8 +12,8 @@ import (
 )
 
 type Consumer interface {
-	Close()
-	Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error
+	Close() error
+	Process(ctx context.Context, processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error
 	SetOffset(offset int64)
 	SetTimeOffset(time time.Time) error
 	ReadOnlyOne()
@@ -26,14 +26,14 @@ type consumer struct {
 	topic          string
 	partition      int32
 	offset         int64
-	ctx            context.Context
-	cancel         context.CancelFunc
 	readOnlyOneMsg bool
 	logger         CustomLogger
 	once           func()
+
+	cancel context.CancelFunc
 }
 
-func (c *client) NewConsumer(ctx context.Context, topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
+func (c *client) NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
 	var out consumer
 	var err error
 
@@ -63,7 +63,6 @@ func (c *client) NewConsumer(ctx context.Context, topic string, key string, numP
 		client:    c.client,
 	}
 
-	out.ctx, out.cancel = context.WithCancel(ctx)
 	out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "create consumer")
@@ -109,12 +108,18 @@ func (c *consumer) SetTimeOffset(time time.Time) error {
 	return nil
 }
 
-func (c *consumer) Close() {
+func (c *consumer) Close() error {
+	if c.cancel == nil {
+		return fmt.Errorf("consumer group has never started")
+	}
 	c.cancel()
 	c.once()
+	return nil
 }
 
-func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
+func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
+	ctx, c.cancel = context.WithCancel(ctx)
+
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
 		return trace.FuncNameWithErrorMsg(err, "processing consumer")
@@ -122,14 +127,14 @@ func (c *consumer) Process(processorFunc ProcessorFunc, postProcessor PostProces
 
 	for {
 		select {
-		case <-c.ctx.Done():
+		case <-ctx.Done():
 			c.once()
 			if c.logger != nil {
 				c.logger.Infof("closing consumer: %s", c.topic)
 			}
 			return nil
 		case msg := <-partConsumer.Messages():
-			err = processorFunc(c.ctx, msg.Value, string(msg.Key))
+			err = processorFunc(ctx, msg.Value, string(msg.Key))
 			if errors.Is(err, ErrInvalidKey) {
 				continue
 			}

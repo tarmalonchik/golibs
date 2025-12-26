@@ -35,19 +35,15 @@ func (s *AutoTopicCreateTestSuite) TestProducer() {
 }
 
 func (s *AutoTopicCreateTestSuite) TestConsumer() {
-	ctx := context.Background()
-
-	c, err := s.Kafka.NewConsumer(ctx, lo.RandomString(10, alphabet), "", 1, true)
+	c, err := s.Kafka.NewConsumer(lo.RandomString(10, alphabet), "", 1, true)
 	s.Require().NoError(err)
 
-	c.Close()
+	_ = c.Close()
 }
 
 func (s *AutoTopicCreateTestSuite) TestConsumerGroup() {
-	ctx := context.Background()
-
-	c, err := s.Kafka.NewConsumerGroup(ctx, lo.RandomString(10, alphabet), "abc", 1, true)
+	c, err := s.Kafka.NewConsumerGroup(lo.RandomString(10, alphabet), "abc", 1, true)
 	s.Require().NoError(err)
 
-	c.Close()
+	_ = c.Close()
 }

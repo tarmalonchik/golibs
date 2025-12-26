@@ -20,19 +20,19 @@ func TestValidation(t *testing.T) {
 func (s *ValidationTestSuite) TestValidation() {
 	ctx := context.Background()
 
-	_, err := s.Kafka.NewConsumerGroup(ctx, "", "", 1, false)
+	_, err := s.Kafka.NewConsumerGroup("", "", 1, false)
 	s.Require().ErrorIs(err, kafka.ErrTopicIsEmpty)
 
-	_, err = s.Kafka.NewConsumer(ctx, "", "", 1, false)
+	_, err = s.Kafka.NewConsumer("", "", 1, false)
 	s.Require().ErrorIs(err, kafka.ErrTopicIsEmpty)
 
 	_, err = s.Kafka.NewSyncProducer(ctx, "", 1, false)
 	s.Require().ErrorIs(err, kafka.ErrTopicIsEmpty)
 
-	_, err = s.Kafka.NewConsumerGroup(ctx, "a", "", 0, false)
+	_, err = s.Kafka.NewConsumerGroup("a", "", 0, false)
 	s.Require().ErrorIs(err, kafka.ErrShouldHaveAtLeastOnePartition)
 
-	_, err = s.Kafka.NewConsumer(ctx, "a", "", 0, false)
+	_, err = s.Kafka.NewConsumer("a", "", 0, false)
 	s.Require().ErrorIs(err, kafka.ErrShouldHaveAtLeastOnePartition)
 
 	_, err = s.Kafka.NewSyncProducer(ctx, "a", 0, false)

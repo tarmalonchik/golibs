@@ -52,14 +52,14 @@ func (s *FinishTestSuite) TestConsumerFinish() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumer(ctx, lo.RandomString(10, alphabet), "", 1, true)
+		p, err := s.Kafka.NewConsumer(lo.RandomString(10, alphabet), "", 1, true)
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
 
 		go func() {
 			for {
-				err = p.Process(func(ctx context.Context, msg []byte, key string) error {
+				err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 					return nil
 				}, func(err error) {})
 				s.Require().NoError(err)
@@ -69,7 +69,7 @@ func (s *FinishTestSuite) TestConsumerFinish() {
 		}()
 
 		time.Sleep(300 * time.Millisecond)
-		p.Close()
+		_ = p.Close()
 		<-ch
 	})
 
@@ -80,14 +80,14 @@ func (s *FinishTestSuite) TestConsumerGroupFinish() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumerGroup(ctx, lo.RandomString(10, alphabet), "test", 1, true)
+		p, err := s.Kafka.NewConsumerGroup(lo.RandomString(10, alphabet), "test", 1, true)
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
 
 		go func() {
 			for {
-				err = p.Process(func(ctx context.Context, msg []byte, key string) error {
+				err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 					return nil
 				}, func(err error) bool {
 					return true
