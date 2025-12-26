@@ -16,7 +16,9 @@ var (
 )
 
 func Bump() {
-	if err := sh.Run("./scripts/git_increment_tag.bash"); err != nil {
+	cmd := `bash <(curl -fsSL https://raw.githubusercontent.com/tarmalonchik/golibs/main/scripts/git_increment_tag.bash)`
+
+	if err := sh.Run("bash", "-c", cmd); err != nil {
 		fmt.Println("Failed to run bump", err)
 		os.Exit(1) //nolint:revive
 	}
