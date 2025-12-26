@@ -1,4 +1,4 @@
-package logger_old
+package loggerold
 
 import (
 	"bytes"

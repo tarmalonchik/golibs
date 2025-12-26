@@ -9,9 +9,20 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/sh"
-	//mage:import
 	"github.com/tarmalonchik/golibs/magefile"
 )
+
+func LintFix() error {
+	loadEnv()
+
+	return magefile.LintFix()
+}
+
+func Lint() error {
+	loadEnv()
+
+	return magefile.Lint()
+}
 
 func InfraUp() {
 	loadEnv()
@@ -23,6 +34,18 @@ func InfraDown() {
 	loadEnv()
 
 	kafkaDown()
+}
+
+func TestIsolation() {
+	loadEnv()
+
+	magefile.TestIsolation()
+}
+
+func Test() {
+	loadEnv()
+
+	magefile.Test()
 }
 
 func kafkaUp() {

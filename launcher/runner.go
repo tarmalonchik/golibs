@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	panicError = fmt.Errorf("panic happened")
+	ErrPanic = fmt.Errorf("panic happened")
 )
 
 type RunnerOpt func(v *runner)
@@ -55,20 +55,20 @@ type runner struct {
 	isFinisher     bool
 }
 
-func (r *runner) run(ctx context.Context) (err error, wasPanic bool) {
+func (r *runner) run(ctx context.Context) (wasPanic bool, err error) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer func() {
 		cancel()
 		if recoverErr := recover(); recoverErr != nil {
-			err = fmt.Errorf("%w: %v\n%s", panicError, panicToString(recoverErr), string(debug.Stack()))
+			err = fmt.Errorf("%w: %v\n%s", ErrPanic, panicToString(recoverErr), string(debug.Stack()))
 			wasPanic = true
 		}
 		<-ctx.Done()
 	}()
 
 	err = r.runnerFunc(ctx)
-	return
+	return wasPanic, err
 }
 
 func panicToString(panicErr interface{}) string {

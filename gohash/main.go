@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -17,19 +18,21 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	tok := os.Getenv("GITHUB_ACCESS_TOKEN")
 	_ = os.Remove("/root/.gitconfig")
 
 	err := os.WriteFile(
 		"/root/.gitconfig",
 		[]byte(fmt.Sprintf("[url \"https://%s@github.com/\"]\n        insteadOf = https://github.com/", tok)),
-		0644,
+		0600,
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := exec.Command("go", "mod", "tidy").Run(); err != nil {
+	if err := exec.CommandContext(ctx, "go", "mod", "tidy").Run(); err != nil {
 		panic(err)
 	}
 
@@ -59,17 +62,15 @@ func main() {
 
 	for i := range dirNames {
 		errG.Go(func() error {
-			cmd := exec.Command(
+			cmd := exec.CommandContext( //nolint:gosec
+				ctx,
 				"go",
 				"build",
 				"-o",
 				filepath.Join(binPath, dirNames[i]),
 				filepath.Join(goSourcesPath, dirNames[i], "main.go"),
 			)
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-			return nil
+			return cmd.Run()
 		})
 	}
 
@@ -113,8 +114,8 @@ func main() {
 		panic(err)
 	}
 
-	_ = os.WriteFile(filepath.Join(hashPath, applicationsFileName), []byte(strings.Join(out, "\n")), os.ModePerm)
-	_ = os.WriteFile(filepath.Join(hashPath, hashFileName), binToHashBytes, os.ModePerm)
+	_ = os.WriteFile(filepath.Join(hashPath, applicationsFileName), []byte(strings.Join(out, "\n")), 0600)
+	_ = os.WriteFile(filepath.Join(hashPath, hashFileName), binToHashBytes, 0600)
 
 	fmt.Println(out)
 }

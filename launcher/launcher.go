@@ -105,7 +105,7 @@ func (c *launcher) runRunners(originalContext, ctx context.Context) {
 			continue
 		}
 		go func(*runner) {
-			err, wasPanic := item.run(ctx)
+			wasPanic, err := item.run(ctx)
 			if err != nil {
 				c.errorChan <- err
 			}
@@ -147,7 +147,7 @@ func (c *launcher) runRunners(originalContext, ctx context.Context) {
 		}
 
 		go func(*runner) {
-			err, _ := item.run(originalContext)
+			_, err := item.run(originalContext)
 			if err != nil {
 				c.errorChan <- err
 			}
@@ -182,7 +182,7 @@ func (c *launcher) logErr(ctx context.Context, err error) {
 }
 
 func (c *launcher) logErrAddPanicPrefix(err error) {
-	if strings.Contains(err.Error(), panicError.Error()) {
+	if strings.Contains(err.Error(), ErrPanic.Error()) {
 		c.logger.Error(fmt.Sprintf("panic happened: %s", err.Error()))
 		return
 	}
