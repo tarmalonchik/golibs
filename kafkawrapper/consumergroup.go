@@ -100,11 +100,11 @@ func (c handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 
 func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	select {
-	case <-sess.Context().Done():
-		return nil
-	default:
-		for msg := range claim.Messages() {
+	for {
+		select {
+		case <-sess.Context().Done():
+			return nil
+		case msg := <-claim.Messages():
 			err := c.processor(c.ctx, msg.Value, string(msg.Key))
 			if errors.Is(err, ErrInvalidKey) {
 				continue
@@ -122,5 +122,4 @@ func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 			}
 		}
 	}
-	return nil
 }

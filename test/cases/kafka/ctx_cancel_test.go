@@ -71,7 +71,7 @@ func (s *CtxCancelTestSuite) TestConsumer() {
 
 func (s *CtxCancelTestSuite) TestConsumerGroup() {
 	basetest.RunWithTimeout(s.Require(), 10*time.Second, func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
 		p, err := s.Kafka.NewConsumerGroup(ctx, lo.RandomString(10, alphabet), "test", 1, true)
@@ -80,15 +80,12 @@ func (s *CtxCancelTestSuite) TestConsumerGroup() {
 		ch := make(chan struct{})
 
 		go func() {
-			for {
-				err = p.Process(func(ctx context.Context, msg []byte, key string) error {
-					return nil
-				}, func(err error) bool {
-					return true
-				})
-				s.Require().NoError(err)
-				break
-			}
+			err = p.Process(func(ctx context.Context, msg []byte, key string) error {
+				return nil
+			}, func(err error) bool {
+				return true
+			})
+			s.Require().NoError(err)
 			close(ch)
 		}()
 
