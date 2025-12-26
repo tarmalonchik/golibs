@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/IBM/sarama"
