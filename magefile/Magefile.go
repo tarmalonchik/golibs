@@ -99,6 +99,36 @@ func LintFix() error {
 	return err
 }
 
+func Generate() {
+	const protoPath = "./proto"
+
+	origin := PWD()
+
+	_, err := os.Stat(protoPath)
+	if os.IsNotExist(err) {
+		fmt.Println("No proto path found")
+		return
+	}
+
+	if err := os.Chdir(protoPath); err != nil {
+		fmt.Println("Could not change directory", err)
+		return
+	}
+
+	cmd := `bash <(curl -fsSL https://raw.githubusercontent.com/tarmalonchik/golibs/main/scripts/git_increment_tag.bash)`
+
+	if err := sh.Run("bash", "-c", cmd); err != nil {
+		fmt.Println("Failed to run proto generate", err)
+		return
+	}
+
+	defer func() {
+		if err := os.Chdir(origin); err != nil {
+			fmt.Println("Could not roll back the dir", err)
+		}
+	}()
+}
+
 func Lint() error {
 	if err := downloadLinter(); err != nil {
 		fmt.Println("Downloading golangCi-lint failed: %w", err)
