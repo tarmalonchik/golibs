@@ -20,7 +20,7 @@ type Logger interface {
 
 type Launcher interface {
 	Launch(ctx context.Context)
-	AddRunner(in RunnerFunc, opts ...RunnerOpt)
+	AddRunners(in []RunnerFunc, opts ...RunnerOpt)
 }
 
 type launcher struct {
@@ -65,7 +65,7 @@ func NewLauncher(opts ...Opt) Launcher {
 	return l
 }
 
-func (c *launcher) AddRunner(in RunnerFunc, opts ...RunnerOpt) {
+func (c *launcher) AddRunners(in []RunnerFunc, opts ...RunnerOpt) {
 	r := &runner{}
 	for i := range opts {
 		opts[i](r)
@@ -76,11 +76,15 @@ func (c *launcher) AddRunner(in RunnerFunc, opts ...RunnerOpt) {
 	}
 
 	if r.isFinisher {
-		c.finishersStack <- newRunner(in, opts...)
-		c.incFinishers()
+		for i := range in {
+			c.finishersStack <- newRunner(in[i], opts...)
+			c.incFinishers()
+		}
 	} else {
-		c.runnableStack <- newRunner(in, opts...)
-		c.inc()
+		for i := range in {
+			c.runnableStack <- newRunner(in[i], opts...)
+			c.inc()
+		}
 	}
 }
 
