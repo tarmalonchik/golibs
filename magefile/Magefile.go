@@ -115,7 +115,7 @@ func Generate() {
 		return
 	}
 
-	cmd := `bash <(curl -fsSL https://raw.githubusercontent.com/tarmalonchik/golibs/main/scripts/git_increment_tag.bash)`
+	cmd := `bash <(curl -fsSL https://raw.githubusercontent.com/tarmalonchik/golibs/main/scripts/gen_proto.bash)`
 
 	if err := sh.Run("bash", "-c", cmd); err != nil {
 		fmt.Println("Failed to run proto generate", err)
