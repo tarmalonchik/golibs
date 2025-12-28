@@ -15,6 +15,13 @@ var (
 	isolationTestsFilePath = "test/cases"
 )
 
+type Env string
+
+const (
+	Dev  = Env("dev")
+	Prod = Env("prod")
+)
+
 func Bump() {
 	cmd := `bash <(curl -fsSL https://raw.githubusercontent.com/tarmalonchik/golibs/main/scripts/git_increment_tag.bash)`
 

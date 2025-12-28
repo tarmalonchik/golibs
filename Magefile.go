@@ -12,13 +12,6 @@ import (
 	"github.com/tarmalonchik/golibs/magefile"
 )
 
-type Env string
-
-const (
-	Dev  = Env("dev")
-	Prod = Env("prod")
-)
-
 func Bump() {
 	loadEnv()
 
