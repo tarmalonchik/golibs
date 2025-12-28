@@ -236,7 +236,7 @@ func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort uint32) 
 	)
 	go func() {
 		if err := sess.Run(); err != nil {
-			fmt.Println("Could not connect to DB")
+			fmt.Println("Could not connect", err)
 			os.Exit(0) //nolint:revive
 		}
 	}()
