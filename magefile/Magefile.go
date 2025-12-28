@@ -1,12 +1,13 @@
 package magefile
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
-	gosh "github.com/codeskyblue/go-sh"
 	"github.com/magefile/mage/sh"
 )
 
@@ -224,18 +225,16 @@ func GitSync() {
 	os.Exit(0) //nolint:revive
 }
 
-func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort uint32) *gosh.Session {
+func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPort, destPort uint32) *exec.Cmd {
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
 
-	sess := gosh.Command("zsh", "-i", "-c", kubectlCmd)
-	go func() {
-		if err := sess.Run(); err != nil {
-			fmt.Println("Could not connect", err)
-			os.Exit(0) //nolint:revive
-		}
-	}()
-	return sess
+	cmd := exec.CommandContext(ctx, "zsh", "-i", "-c", kubectlCmd)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd
 }
 
 func PWD() string {
