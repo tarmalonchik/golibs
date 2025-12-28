@@ -225,15 +225,10 @@ func GitSync() {
 }
 
 func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort uint32) *gosh.Session {
-	sess := gosh.Command(
-		"kubectl",
-		fmt.Sprintf("--context=%s", kubeCtx),
-		"port-forward",
-		"-n",
-		namespace,
-		svc,
-		fmt.Sprintf("%d:%d", localPort, destPort),
-	)
+	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
+		kubeCtx, namespace, svc, localPort, destPort)
+
+	sess := gosh.Command("zsh", "-l", "-c", kubectlCmd)
 	go func() {
 		if err := sess.Run(); err != nil {
 			fmt.Println("Could not connect", err)
