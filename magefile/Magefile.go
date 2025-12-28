@@ -228,7 +228,7 @@ func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort uint32) 
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
 
-	sess := gosh.Command("zsh", "-l", "-c", kubectlCmd)
+	sess := gosh.Command("zsh", "-i", "-c", kubectlCmd)
 	go func() {
 		if err := sess.Run(); err != nil {
 			fmt.Println("Could not connect", err)
