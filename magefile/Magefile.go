@@ -1,9 +1,11 @@
 package magefile
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/magefile/mage/sh"
@@ -223,15 +225,35 @@ func GitSync() {
 	os.Exit(0) //nolint:revive
 }
 
-func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort int) error {
-	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
-		kubeCtx, namespace, svc, localPort, destPort)
+func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPort, destPort int) error {
+	kubeconfig := os.ExpandEnv(os.Getenv("KUBECONFIG"))
 
-	envs := map[string]string{
-		"KUBECONFIG": os.Getenv("KUBECONFIG"),
+	args := []string{
+		"--context", kubeCtx,
+		"-n", namespace,
+		"port-forward",
+		svc,
+		fmt.Sprintf("%d:%d", localPort, destPort),
 	}
 
-	return sh.RunWith(envs, kubectlCmd)
+	cmd := exec.CommandContext(ctx, "kubectl", args...)
+
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "KUBECONFIG="+kubeconfig)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	fmt.Printf(">>> Connecting to %s (%d:%d)...\n", svc, localPort, destPort)
+
+	err := cmd.Run()
+
+	if ctx.Err() != nil {
+		fmt.Printf(">>> Connection %s closed.\n", svc)
+		return nil
+	}
+
+	return err
 }
 
 func PWD() string {
