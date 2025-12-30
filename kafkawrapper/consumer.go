@@ -130,7 +130,7 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 		case <-ctx.Done():
 			c.once()
 			if c.logger != nil {
-				c.logger.Infof("closing consumer: %s", c.topic)
+				c.logger.Info(fmt.Sprintf("closing consumer: %s", c.topic))
 			}
 			return nil
 		case msg := <-partConsumer.Messages():

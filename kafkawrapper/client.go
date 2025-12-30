@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/IBM/sarama"
+	"go.uber.org/zap"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
@@ -20,8 +21,8 @@ type Client interface {
 }
 
 type CustomLogger interface {
-	Errorf(err error, format string, args ...any)
-	Infof(format string, args ...any)
+	Info(msg string, fields ...zap.Field)
+	Error(msg string, fields ...zap.Field)
 }
 type client struct {
 	brokers []string
@@ -84,7 +85,7 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
 	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
 	if err != nil && c.logger != nil {
-		c.logger.Errorf(err, "creating cluster admin")
+		c.logger.Error("creating cluster admin", zap.Error(err))
 		return nil
 	}
 	defer func() {
@@ -101,7 +102,7 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 	)
 	if err != nil && c.logger != nil {
 		if !errors.Is(err, sarama.ErrTopicAlreadyExists) {
-			c.logger.Errorf(err, "creating topic name:\"%s\"", topic)
+			c.logger.Error(fmt.Sprintf("creating topic name:\"%s\"", topic), zap.Error(err))
 			return err
 		}
 	}

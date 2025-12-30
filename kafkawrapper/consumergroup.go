@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/IBM/sarama"
+	"go.uber.org/zap"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
@@ -74,7 +75,7 @@ func (c *consumerGroup) Process(ctx context.Context, processorFunc ProcessorFunc
 		case <-ctx.Done():
 			c.once()
 			if c.logger != nil {
-				c.logger.Infof("closing consumer group: %s", c.topic)
+				c.logger.Info(fmt.Sprintf("closing consumer group: %s", c.topic))
 			}
 			return nil
 		default:
@@ -88,7 +89,8 @@ func (c *consumerGroup) Process(ctx context.Context, processorFunc ProcessorFunc
 				if c.logger == nil {
 					return nil
 				}
-				c.logger.Errorf(trace.FuncNameWithError(err), "processing consumer group")
+
+				c.logger.Error("processing consumer group", zap.Error(err))
 			}
 		}
 	}
