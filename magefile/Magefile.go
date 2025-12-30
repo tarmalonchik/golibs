@@ -225,7 +225,7 @@ func GitSync() {
 	os.Exit(0) //nolint:revive
 }
 
-func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPort, destPort uint32) *exec.Cmd {
+func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPort, destPort uint32) error {
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
 
@@ -234,7 +234,7 @@ func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPo
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	return cmd
+	return cmd.Run()
 }
 
 func PWD() string {
