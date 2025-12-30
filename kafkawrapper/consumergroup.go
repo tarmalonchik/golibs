@@ -60,7 +60,7 @@ func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, crea
 
 func (c *consumerGroup) Close() error {
 	if c.cancel == nil {
-		return fmt.Errorf("consumer group has never started")
+		return nil
 	}
 	c.cancel()
 	c.once()

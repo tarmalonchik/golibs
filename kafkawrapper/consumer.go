@@ -110,7 +110,7 @@ func (c *consumer) SetTimeOffset(time time.Time) error {
 
 func (c *consumer) Close() error {
 	if c.cancel == nil {
-		return fmt.Errorf("consumer group has never started")
+		return nil
 	}
 	c.cancel()
 	c.once()
