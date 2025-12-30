@@ -1,11 +1,9 @@
 package magefile
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/magefile/mage/sh"
@@ -225,16 +223,11 @@ func GitSync() {
 	os.Exit(0) //nolint:revive
 }
 
-func KubectlConnect(ctx context.Context, kubeCtx, namespace, svc string, localPort, destPort int) error {
+func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort int) error {
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
 
-	cmd := exec.CommandContext(ctx, "zsh", "-i", "-c", kubectlCmd)
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return sh.RunWithV(nil, "zsh", "i", "-c", kubectlCmd)
 }
 
 func PWD() string {
