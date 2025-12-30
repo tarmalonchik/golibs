@@ -226,8 +226,7 @@ func GitSync() {
 func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort int) error {
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
-
-	return sh.RunWithV(nil, "zsh", "i", "-c", kubectlCmd)
+	return sh.RunWithV(nil, "zsh", "-i", "-c", kubectlCmd)
 }
 
 func PWD() string {
