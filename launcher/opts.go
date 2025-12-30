@@ -15,6 +15,12 @@ func WithLogger(logger Logger) Opt {
 	}
 }
 
+func WithRepeaterPeriod(duration time.Duration) Opt {
+	return func(v *launcher) {
+		v.repeaterPeriod = 1 * time.Second
+	}
+}
+
 func WithTimeout(timeout time.Duration) Opt {
 	return func(v *launcher) {
 		v.timeout = timeout

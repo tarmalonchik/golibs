@@ -36,10 +36,14 @@ type launcher struct {
 	cancel    context.CancelFunc // context.Cancel func
 	timeout   time.Duration      // time when forced termination will happen after crushing
 	jobsDone  chan interface{}   // the channel to signal when all work done
+
+	repeaterPeriod time.Duration
 }
 
 func NewLauncher(opts ...Opt) Launcher {
-	l := &launcher{}
+	l := &launcher{
+		repeaterPeriod: 1 * time.Second,
+	}
 
 	for i := range opts {
 		opts[i](l)
