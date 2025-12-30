@@ -119,19 +119,19 @@ func (c *launcher) runRunners(originalContext, ctx context.Context) {
 			}
 
 			if wasPanic && item.repeatOnPanic {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(c.repeaterPeriod)
 				c.runnableStack <- item
 				return
 			}
 
 			if err != nil && !wasPanic && item.repeatOnError {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(c.repeaterPeriod)
 				c.runnableStack <- item
 				return
 			}
 
 			if item.repeatOnFinish {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(c.repeaterPeriod)
 				c.runnableStack <- item
 				return
 			}
