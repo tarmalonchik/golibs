@@ -223,10 +223,15 @@ func GitSync() {
 	os.Exit(0) //nolint:revive
 }
 
-func KubectlConnect(kubeCtx, namespace, svc string, localPort, destPort int) error {
+func KubectlConnect(shEnvs map[string]string, kubeCtx, namespace, svc string, localPort, destPort int) error {
 	kubectlCmd := fmt.Sprintf("kubectl --context=%s port-forward -n %s %s %d:%d",
 		kubeCtx, namespace, svc, localPort, destPort)
-	return sh.Run(kubectlCmd)
+
+	if shEnvs == nil {
+		shEnvs = map[string]string{}
+	}
+
+	return sh.RunWith(shEnvs, kubectlCmd)
 }
 
 func PWD() string {
