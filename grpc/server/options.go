@@ -4,13 +4,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tarmalonchik/golibs/grpc"
 	"github.com/tarmalonchik/golibs/grpc/interceptor"
+	grpc2 "google.golang.org/grpc"
 )
 
 type Opt func(*options)
 
 type options struct {
-	logLevel logrus.Level
-	auth     interceptor.Auth
+	logLevel     logrus.Level
+	auth         interceptor.Auth
+	interceptors []grpc2.UnaryServerInterceptor
 }
 
 func newDefaultOptions() *options {
@@ -28,5 +30,11 @@ func WithLogLevel(lvl grpc.LogLevel) Opt {
 func WithAuth(auth interceptor.Auth) Opt {
 	return func(v *options) {
 		v.auth = auth
+	}
+}
+
+func WithServerInterceptors(items ...grpc2.UnaryServerInterceptor) Opt {
+	return func(v *options) {
+		v.interceptors = items
 	}
 }

@@ -1,6 +1,7 @@
 package server
 
 import (
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/tarmalonchik/golibs/grpc/interceptor"
 	"google.golang.org/grpc"
 )
@@ -14,6 +15,7 @@ func New(opts ...Opt) *grpc.Server {
 
 	serverOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
+			grpcmiddleware.ChainUnaryServer(conf.interceptors...),
 			interceptor.NewLoggingServerInterceptor(conf.logLevel),
 		),
 	}
