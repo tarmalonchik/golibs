@@ -11,9 +11,9 @@ linters:
     - bodyclose
     - canonicalheader
     - copyloopvar
-    - decorder # todo exclude from tests
-    - dupl # todo exclude from tests
-    - dupword # todo exclude from tests
+    - decorder
+    - dupl
+    - dupword
     - durationcheck
     - embeddedstructfieldcheck
     - errcheck
@@ -23,17 +23,17 @@ linters:
     - exhaustive
     - exptostd
     - fatcontext
-    - forbidigo # todo exclude from tests
+    - forbidigo
     - forcetypeassert
     - funlen
     - gocheckcompilerdirectives
     - goconst
-    - gocritic # Provides diagnostics that check for bugs, performance and style issues todo have settings
+    - gocritic
     - godox
     - goprintffuncname
-    - gosec # Inspects source code for security problems todo have settings
+    - gosec
     - gosmopolitan
-    - govet # Vet examines Go source code and reports suspicious constructs. It is roughly the same as 'go vet' and uses its passes todo have settings
+    - govet
     - grouper
     - iface
     - ineffassign
@@ -70,10 +70,7 @@ linters:
     - dogsled
     - nakedret
     - noctx
-    - staticcheck # It's the set of rules from staticcheck
-
-
-
+    - staticcheck
   settings:
     grouper:
       const-require-grouping: true
@@ -94,7 +91,7 @@ linters:
         - var
         - func
     dupl:
-      threshold: 100 # todo exclude from tests
+      threshold: 100
     funlen:
       lines: 100
       statements: 50
@@ -106,34 +103,33 @@ linters:
         - cancelled
     nlreturn:
       block-size: 2
-#    goconst:
-#      min-len: 2
-#      min-occurrences: 3
-#    gocritic:
-#      disabled-checks:
-#        - dupImport
-#        - ifElseChain
-#        - octalLiteral
-#        - whyNoLint
-#      enabled-tags:
-#        - diagnostic
-#        - experimental
-#        - opinionated
-#        - style
+    goconst:
+      min-len: 2
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - style
     gocyclo:
       min-complexity: 15
-#    gosec:
-#      excludes:
-#        - G115
-#    govet:
-#      settings:
-#        printf:
-#          funcs:
-#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-
+    gosec:
+      excludes:
+        - G115
+    govet:
+      settings:
+        printf:
+          funcs:
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
     mnd:
       checks:
         - argument
@@ -147,61 +143,77 @@ linters:
         - "3"
       ignored-functions:
         - strings.SplitN
-#    nolintlint:
-#      require-explanation: false
-#      require-specific: false
-#      allow-unused: false
-#  exclusions:
-#    generated: lax
-#    presets:
-#      - comments
-#      - common-false-positives
-#      - legacy
-#      - std-error-handling
-#    rules:
-#      - linters:
-#          - dupl
-#          - funlen
-#          - goconst
-#          - gocritic
-#          - gosec
-#          - lll
-#          - mnd
-#          - staticcheck
-#        path: _test\.go
-#      - linters:
-#          - mnd
-#        path: test/basetest/suite.go
-#      - linters:
-#          - dupl
-#          - gochecknoinits
-#        path: migrations/
-#      - path: pkg/golinters/errcheck.go
-#        text: 'SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead'
-#      - path: pkg/commands/run.go
-#        text: 'SA1019: lsc.Errcheck.Exclude is deprecated: use ExcludeFunctions instead'
-#      - path: pkg/commands/run.go
-#        text: 'SA1019: e.cfg.Run.Deadline is deprecated: Deadline exists for historical compatibility and should not be used.'
-#      - path: pkg/golinters/gofumpt.go
-#        text: 'SA1019: settings.LangVersion is deprecated: use the global `run.go` instead.'
-#      - path: pkg/golinters/staticcheck_common.go
-#        text: 'SA1019: settings.GoVersion is deprecated: use the global `run.go` instead.'
-#      - path: pkg/lint/lintersdb/manager.go
-#        text: 'SA1019: (.+).(GoVersion|LangVersion) is deprecated: use the global `run.go` instead.'
-#    paths:
-#      - third_party$
-#      - builtin$
-#      - examples$
-#formatters:
-#  enable:
-#    - gofmt
-#    - goimports
-#  settings:
-#    goimports:
-#      local-prefixes:
-#  exclusions:
-#    generated: lax
-#    paths:
-#      - third_party$
-#      - builtin$
-#      - examples$
+    nolintlint:
+      require-explanation: false
+      require-specific: false
+      allow-unused: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - funlen
+          - goconst
+          - gocritic
+          - gosec
+          - lll
+          - mnd
+          - staticcheck
+          - forbidigo
+          - decorder
+          - dupl
+          - dupword
+        path: _test\.go
+      - linters:
+          - dupl
+          - funlen
+          - goconst
+          - gocritic
+          - gosec
+          - lll
+          - mnd
+          - staticcheck
+          - forbidigo
+          - decorder
+          - dupl
+          - dupword
+        path: test/
+      - linters:
+          - dupl
+          - gochecknoinits
+        path: migrations/
+      - path: pkg/golinters/errcheck.go
+        text: 'SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead'
+      - path: pkg/commands/run.go
+        text: 'SA1019: lsc.Errcheck.Exclude is deprecated: use ExcludeFunctions instead'
+      - path: pkg/commands/run.go
+        text: 'SA1019: e.cfg.Run.Deadline is deprecated: Deadline exists for historical compatibility and should not be used.'
+      - path: pkg/golinters/gofumpt.go
+        text: 'SA1019: settings.LangVersion is deprecated: use the global `run.go` instead.'
+      - path: pkg/golinters/staticcheck_common.go
+        text: 'SA1019: settings.GoVersion is deprecated: use the global `run.go` instead.'
+      - path: pkg/lint/lintersdb/manager.go
+        text: 'SA1019: (.+).(GoVersion|LangVersion) is deprecated: use the global `run.go` instead.'
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+

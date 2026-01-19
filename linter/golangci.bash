@@ -1,36 +1,32 @@
 #!/bin/bash
 
-BASE_CONFIG=".golangci.base.yaml"
-LOCAL_TEMPLATE="golangci-template.yaml"
-FINAL_CONFIG=".golangci.yaml"
+REMOTE_CONFIG_URL=https://raw.githubusercontent.com/tarmalonchik/golibs/main/linter/.golangci.yml
 
-# 1. Проверка наличия yq
+BASE_CONFIG=".golangci.base.yml"
+LOCAL_TEMPLATE=".golangci-template.yml"
+FINAL_CONFIG=".golangci.yml"
+
 if ! command -v yq &> /dev/null; then
-    echo "Ошибка: yq не установлен. Установите его: https://github.com/mikefarah/yq"
+    echo "❌ spruce is not installed. Please install spruce: ( ~ brew tap starkandwayne/cf; brew install spruce )"
     exit 1
 fi
 
-# 2. Скачивание удаленного конфига
-echo "📥 Скачивание удаленного конфига..."
+echo "Downloading remote linter file ..."
 curl -sSL "$REMOTE_CONFIG_URL" -o "$BASE_CONFIG"
 
 if [ $? -ne 0 ]; then
-    echo "❌ Ошибка при скачивании удаленного конфига"
+    echo "❌ error while downloading remote linter config"
     exit 1
 fi
 
-# 3. Мерж файлов
-# Логика yq: первый файл в списке — база, последующие перекрывают его.
-# Оператор '*+' делает глубокий мерж, включая объединение массивов (линтеров).
 if [ -f "$LOCAL_TEMPLATE" ]; then
-    echo "🔄 Мерж удаленного конфига с локальным шаблоном (приоритет локального)..."
-    yq eval-all 'select(fileIndex == 0) *+ select(fileIndex == 1)' "$BASE_CONFIG" "$LOCAL_TEMPLATE" > "$FINAL_CONFIG"
+    echo "🔗 merging local linter file with remote (local have priority)..."
+    spruce merge "$BASE_CONFIG" "$LOCAL_TEMPLATE" > "$FINAL_CONFIG"
 else
-    echo "⚠️ Локальный шаблон $LOCAL_TEMPLATE не найден. Используется только удаленный конфиг."
+    echo "⚠️ Local template $LOCAL_TEMPLATE is not found. Using remote linter config!"
     cp "$BASE_CONFIG" "$FINAL_CONFIG"
 fi
 
-# 4. Очистка временных файлов
 rm "$BASE_CONFIG"
 
-echo "✅ Файл $FINAL_CONFIG успешно создан!"
+echo "✅ Target file $FINAL_CONFIG is successfully generated!"
