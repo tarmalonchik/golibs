@@ -1,0 +1,207 @@
+version: "2"
+run:
+  timeout: 10m
+  relative-path-mode: gomod
+  concurrency: 4
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - copyloopvar
+    - decorder # todo exclude from tests
+    - dupl # todo exclude from tests
+    - dupword # todo exclude from tests
+    - durationcheck
+    - embeddedstructfieldcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exptostd
+    - fatcontext
+    - forbidigo # todo exclude from tests
+    - forcetypeassert
+    - funlen
+    - gocheckcompilerdirectives
+    - goconst
+    - gocritic # Provides diagnostics that check for bugs, performance and style issues todo have settings
+    - godox
+    - goprintffuncname
+    - gosec # Inspects source code for security problems todo have settings
+    - gosmopolitan
+    - govet # Vet examines Go source code and reports suspicious constructs. It is roughly the same as 'go vet' and uses its passes todo have settings
+    - grouper
+    - iface
+    - ineffassign
+    - lll
+    - mirror
+    - misspell
+    - mnd
+    - modernize
+    - musttag
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - nlreturn
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - protogetter
+    - reassign
+    - rowserrcheck
+    - sqlclosecheck
+    - tagalign
+    - thelper
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+    - zerologlint
+    - dogsled
+    - nakedret
+    - noctx
+    - staticcheck # It's the set of rules from staticcheck
+
+
+
+  settings:
+    grouper:
+      const-require-grouping: true
+      import-require-single-import: true
+    godox:
+      keywords:
+        - FIXME
+        - BUG
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+      disable-default-exclusions: false
+      verbose: true
+    decorder:
+      dec-order:
+        - type
+        - const
+        - var
+        - func
+    dupl:
+      threshold: 100 # todo exclude from tests
+    funlen:
+      lines: 100
+      statements: 50
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+      ignore-rules:
+        - cancelled
+    nlreturn:
+      block-size: 2
+#    goconst:
+#      min-len: 2
+#      min-occurrences: 3
+#    gocritic:
+#      disabled-checks:
+#        - dupImport
+#        - ifElseChain
+#        - octalLiteral
+#        - whyNoLint
+#      enabled-tags:
+#        - diagnostic
+#        - experimental
+#        - opinionated
+#        - style
+    gocyclo:
+      min-complexity: 15
+#    gosec:
+#      excludes:
+#        - G115
+#    govet:
+#      settings:
+#        printf:
+#          funcs:
+#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+#            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+      ignored-functions:
+        - strings.SplitN
+#    nolintlint:
+#      require-explanation: false
+#      require-specific: false
+#      allow-unused: false
+#  exclusions:
+#    generated: lax
+#    presets:
+#      - comments
+#      - common-false-positives
+#      - legacy
+#      - std-error-handling
+#    rules:
+#      - linters:
+#          - dupl
+#          - funlen
+#          - goconst
+#          - gocritic
+#          - gosec
+#          - lll
+#          - mnd
+#          - staticcheck
+#        path: _test\.go
+#      - linters:
+#          - mnd
+#        path: test/basetest/suite.go
+#      - linters:
+#          - dupl
+#          - gochecknoinits
+#        path: migrations/
+#      - path: pkg/golinters/errcheck.go
+#        text: 'SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead'
+#      - path: pkg/commands/run.go
+#        text: 'SA1019: lsc.Errcheck.Exclude is deprecated: use ExcludeFunctions instead'
+#      - path: pkg/commands/run.go
+#        text: 'SA1019: e.cfg.Run.Deadline is deprecated: Deadline exists for historical compatibility and should not be used.'
+#      - path: pkg/golinters/gofumpt.go
+#        text: 'SA1019: settings.LangVersion is deprecated: use the global `run.go` instead.'
+#      - path: pkg/golinters/staticcheck_common.go
+#        text: 'SA1019: settings.GoVersion is deprecated: use the global `run.go` instead.'
+#      - path: pkg/lint/lintersdb/manager.go
+#        text: 'SA1019: (.+).(GoVersion|LangVersion) is deprecated: use the global `run.go` instead.'
+#    paths:
+#      - third_party$
+#      - builtin$
+#      - examples$
+#formatters:
+#  enable:
+#    - gofmt
+#    - goimports
+#  settings:
+#    goimports:
+#      local-prefixes:
+#  exclusions:
+#    generated: lax
+#    paths:
+#      - third_party$
+#      - builtin$
+#      - examples$
