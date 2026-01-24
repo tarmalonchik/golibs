@@ -44,10 +44,14 @@ func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, crea
 		}
 	}
 
-	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, c.client.Config())
+	cfg := *c.client.Config()
+	cfg.Consumer.Offsets.Initial = sarama.OffsetOldest
+
+	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, &cfg)
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating consumer group")
 	}
+
 	out.topic = topic
 	out.client = c.client
 	out.logger = c.logger

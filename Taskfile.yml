@@ -41,11 +41,6 @@ tasks:
       - rm ./coverage.out ./test.log
   isolation-tests:
     desc: "run isolation tests"
-    aliases:
-      - isotest
-      - isotests
-    dotenv: [ .test.env ]
     cmds:
-      - GOPATH=$GOPATH go clean --testcache
-      - GOPATH=$GOPATH go test -v ./test/cases/...
+      - mage testIsolation
 
