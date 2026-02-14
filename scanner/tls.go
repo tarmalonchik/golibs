@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"log/slog"
@@ -69,7 +70,7 @@ func scanTLS(host Host, out chan<- string, port int, timeout time.Duration) {
 		log = slog.Debug
 		feasible = false
 	} else {
-		if isValidDomain(domain) {
+		if isValidDomain(domain, timeout) {
 			fmt.Println(domain)
 			out <- domain
 		}
@@ -80,7 +81,7 @@ func scanTLS(host Host, out chan<- string, port int, timeout time.Duration) {
 		"tls", tls.VersionName(state.Version), "alpn", alpn, "cert-domain", domain, "cert-issuer", issuers)
 }
 
-func isValidDomain(domain string) bool {
+func isValidDomain(domain string, timeout time.Duration) bool {
 	if strings.Contains(domain, "*") {
 		return false
 	}
@@ -88,10 +89,20 @@ func isValidDomain(domain string) bool {
 		return false
 	}
 
-	resp, err := http.Get("https://" + domain)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+domain, nil)
 	if err != nil {
 		return false
 	}
+
+	client := &http.Client{Timeout: timeout}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+
 	defer func() {
 		_ = resp.Body.Close()
 	}()

@@ -54,7 +54,7 @@ func runScanner(addr string, port, parallel int, timeout time.Duration) ([]strin
 
 	hostChan = iterateAddr(addr)
 
-	outCh := make(chan string, 1000)
+	outCh := make(chan string, 10000)
 
 	once := sync.OnceFunc(func() {
 		close(outCh)
