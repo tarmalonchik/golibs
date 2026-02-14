@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +26,8 @@ func RunAndFilter(addr netip.Addr, port, parallel int, timeout time.Duration) []
 	if err != nil {
 		panic(err)
 	}
+
+	sort.Strings(out)
 
 	return lo.Filter(out, func(item string, index int) bool {
 		if strings.Contains(item, "beget") {
