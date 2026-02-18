@@ -45,7 +45,7 @@ func TestIsolation() {
 		os.Exit(1) //nolint:revive
 	}
 
-	out, err := sh.Output("go", "test", "-v", fmt.Sprintf("./%s/...", isolationTestsFilePath))
+	out, err := sh.Output("go", "test", "-v", "-p", "1", fmt.Sprintf("./%s/...", isolationTestsFilePath))
 	if err != nil {
 		fmt.Println(out)
 		fmt.Println("Failed to run isolation test", err)
