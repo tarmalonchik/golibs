@@ -40,6 +40,15 @@ func TestGetRequest(t *testing.T) {
 			method:     http.MethodGet,
 			statusCode: http.StatusOK,
 			respBody:   []byte("hello"),
+			headers: http.Header{
+				"Authorization": []string{"someauthheader"},
+			},
+		},
+		{
+			path:       nil,
+			method:     http.MethodGet,
+			statusCode: http.StatusOK,
+			respBody:   []byte("hello"),
 		},
 		{
 			path:       []string{"hello", "some"},
@@ -161,7 +170,7 @@ func caseRunner(t *testing.T, item tCase) {
 	baseURL, err := url.Parse(fmt.Sprintf("http://%s", addressPort))
 	require.NoError(t, err)
 
-	cli := NewClient(WithLogLevel(logger.LevelInfo), WithRetry(3))
+	cli := NewClient(WithLogLevel(logger.LevelInfo), WithRetry(3), WithMaskHeader("authorization"))
 
 	opt := make([]RequestOptions[any], 0)
 	if paths != "" {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/tarmalonchik/golibs/logger"
@@ -17,6 +18,14 @@ type Opt func(client *Client)
 func WithLogLevel(lvl logger.Level) Opt {
 	return func(v *Client) {
 		v.logLevel = lvl
+	}
+}
+
+func WithMaskHeader(keys ...string) Opt {
+	return func(v *Client) {
+		for i := range keys {
+			v.maskHeaders = append(v.maskHeaders, strings.ToLower(keys[i]))
+		}
 	}
 }
 

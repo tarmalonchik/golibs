@@ -1,8 +1,11 @@
 package httpclient
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 
 	"go.uber.org/zap"
 
@@ -10,12 +13,19 @@ import (
 )
 
 type loggingTransport struct {
-	parent http.RoundTripper
-	logger *logger.Logger
+	parent      http.RoundTripper
+	logger      *logger.Logger
+	maskHeaders map[string]struct{}
 }
 
 func (s *loggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	dump, err := httputil.DumpRequest(req, true)
+	cloneReq, err := cloneRequestWithBody(req)
+	if err != nil {
+		return nil, err
+	}
+	cloneReq.Header = s.mask(cloneReq.Header)
+
+	dump, err := httputil.DumpRequest(cloneReq, true)
 	if err != nil {
 		s.logger.Error("failed to dump http request", zap.Error(err))
 	} else {
@@ -37,4 +47,35 @@ func (s *loggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	s.logger.Info("http response dump", zap.String("dump", string(dump)))
 
 	return resp, nil
+}
+
+func (s *loggingTransport) mask(header http.Header) http.Header {
+	for key := range header {
+		if _, ok := s.maskHeaders[strings.ToLower(key)]; ok {
+			header.Set(key, "[masked]")
+		}
+	}
+	return header
+}
+
+func cloneRequestWithBody(req *http.Request) (*http.Request, error) {
+	newReq := req.Clone(req.Context())
+
+	if req.Body == nil {
+		return newReq, nil
+	}
+
+	bodyBytes, err := io.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = req.Body.Close()
+	}()
+
+	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	newReq.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	return newReq, nil
 }

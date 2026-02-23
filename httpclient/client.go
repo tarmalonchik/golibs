@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go"
+	"github.com/samber/lo"
 
 	"github.com/tarmalonchik/golibs/logger"
 	"github.com/tarmalonchik/golibs/trace"
@@ -22,6 +23,7 @@ type Client struct {
 	httpClient    *http.Client
 	logger        *logger.Logger
 	loggerSender  logger.Sender
+	maskHeaders   []string
 }
 
 func NewClient(opts ...Opt) *Client {
@@ -47,6 +49,9 @@ func NewClient(opts ...Opt) *Client {
 		Transport: &loggingTransport{
 			parent: http.DefaultTransport,
 			logger: logger.NewLogger(loggerOpts...),
+			maskHeaders: lo.SliceToMap(c.maskHeaders, func(item string) (string, struct{}) {
+				return item, struct{}{}
+			}),
 		},
 	}
 
