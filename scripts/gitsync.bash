@@ -15,7 +15,7 @@ echo "Sync branch [$BRANCH] with $REMOTE/$BRANCH..."
 
 if [ "$FORCE" = false ]; then
     echo -n "Do you really want to sync current branch with origin? (y/n) "
-    read -k 1 REPLY
+    read -n 1 REPLY
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Cancel operation."
