@@ -6,7 +6,7 @@ FORCE=false
 
 if [[ -z "$BRANCH" ]]; then
     echo "Error: Not a git repository."
-    exit 1  # В скриптах используем exit, а не return
+    exit 1
 fi
 
 if [[ "$1" == "-f" ]]; then
