@@ -1,10 +1,12 @@
-local REMOTE="origin"
-local BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-local FORCE=false
+#!/bin/bash
+
+REMOTE="origin"
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+FORCE=false
 
 if [[ -z "$BRANCH" ]]; then
     echo "Error: Not a git repository."
-    return 1
+    exit 1  # В скриптах используем exit, а не return
 fi
 
 if [[ "$1" == "-f" ]]; then
@@ -14,12 +16,11 @@ fi
 echo "Sync branch [$BRANCH] with $REMOTE/$BRANCH..."
 
 if [ "$FORCE" = false ]; then
-    echo -n "Do you really want to sync current branch with origin? (y/n) "
-    read -n 1 REPLY
+    read -p "Do you really want to sync current branch with origin? (y/n) " -n 1 REPLY
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Cancel operation."
-        return 1
+        exit 1
     fi
 fi
 
