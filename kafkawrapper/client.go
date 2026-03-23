@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"strings"
@@ -41,6 +42,10 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
 	config.Producer.Timeout = 5 * time.Second
+	if conf.KafkaEnableTLS {
+		config.Net.TLS.Enable = true
+		config.Net.TLS.Config = &tls.Config{}
+	}
 
 	var out client
 	var err error
