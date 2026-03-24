@@ -2,13 +2,17 @@ package kafka
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"hash"
 	"strings"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/xdg-go/scram"
 	"go.uber.org/zap"
 
 	"github.com/tarmalonchik/golibs/trace"
@@ -45,6 +49,9 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	if conf.KafkaEnableTLS {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{}
+	}
+	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+		return &XDGSCRAMClient{HashGeneratorFcn: SHA512}
 	}
 
 	var out client
@@ -115,4 +122,32 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 	}
 
 	return nil
+}
+
+var (
+	SHA256 scram.HashGeneratorFcn = func() hash.Hash { return sha256.New() }
+	SHA512 scram.HashGeneratorFcn = func() hash.Hash { return sha512.New() }
+)
+
+type XDGSCRAMClient struct {
+	*scram.Client
+	*scram.ClientConversation
+	scram.HashGeneratorFcn
+}
+
+func (s *XDGSCRAMClient) Begin(userName, password, authzID string) (err error) {
+	s.Client, err = s.HashGeneratorFcn.NewClient(userName, password, authzID)
+	if err != nil {
+		return err
+	}
+	s.ClientConversation = s.Client.NewConversation()
+	return nil
+}
+
+func (s *XDGSCRAMClient) Step(challenge string) (response string, err error) {
+	return s.ClientConversation.Step(challenge)
+}
+
+func (s *XDGSCRAMClient) Done() bool {
+	return s.ClientConversation.Done()
 }
