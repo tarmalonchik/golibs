@@ -36,7 +36,7 @@ type client struct {
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config := sarama.NewConfig()
 	config.Net.SASL.Enable = true
-	config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
+	config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
 	config.Net.SASL.Password = conf.KafkaPassword
 	config.Net.SASL.User = conf.KafkaUser
 	config.Producer.Return.Errors = true
