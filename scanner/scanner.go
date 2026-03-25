@@ -33,6 +33,9 @@ func RunAndFilter(addr netip.Addr, port, parallel int, timeout time.Duration) []
 		if strings.Contains(item, "beget") {
 			return false
 		}
+		if strings.Contains(item, "--") {
+			return false
+		}
 		return true
 	})
 }
