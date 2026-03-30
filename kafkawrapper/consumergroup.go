@@ -27,6 +27,9 @@ type consumerGroup struct {
 }
 
 func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
+	topic = c.wrapTopic(topic)
+	group = c.wrapTopic(group)
+
 	var out consumerGroup
 	var err error
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+
 	"github.com/tarmalonchik/golibs/trace"
 )
 
@@ -34,6 +35,8 @@ type consumer struct {
 }
 
 func (c *client) NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
+	topic = c.wrapTopic(topic)
+
 	var out consumer
 	var err error
 

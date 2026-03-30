@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/tls"
 	"errors"
@@ -35,6 +34,14 @@ type client struct {
 	client  sarama.Client
 	logger  CustomLogger
 	conf    Config
+	prefix  string
+}
+
+func (c *client) wrapTopic(key string) string {
+	if c.conf.KafkaPrefix == "" {
+		return key
+	}
+	return fmt.Sprintf("%s-%s", c.conf.KafkaUser, key)
 }
 
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
@@ -51,7 +58,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 		config.Net.TLS.Config = &tls.Config{}
 	}
 	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
-		return &XDGSCRAMClient{HashGeneratorFcn: SHA512}
+		return &XDGSCRAMClient{HashGeneratorFcn: func() hash.Hash { return sha512.New() }}
 	}
 
 	var out client
@@ -70,6 +77,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	}
 	out.conf = conf
 	out.logger = logger
+	out.prefix = conf.KafkaPrefix
 	return &out, nil
 }
 
@@ -123,11 +131,6 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 
 	return nil
 }
-
-var (
-	SHA256 scram.HashGeneratorFcn = func() hash.Hash { return sha256.New() }
-	SHA512 scram.HashGeneratorFcn = func() hash.Hash { return sha512.New() }
-)
 
 type XDGSCRAMClient struct {
 	*scram.Client

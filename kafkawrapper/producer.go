@@ -26,6 +26,8 @@ type producer struct {
 }
 
 func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error) {
+	topic = c.wrapTopic(topic)
+
 	if topic == "" {
 		return nil, ErrTopicIsEmpty
 	}
