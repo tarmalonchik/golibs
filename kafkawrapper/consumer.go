@@ -54,7 +54,12 @@ func (c *client) NewConsumer(topic string, key string, numPartitions int32, crea
 		}
 	}
 
-	part, err := getPartitionNumberWithKey(topic, key, numPartitions)
+	actualPartitions, err := c.getTopicPartitionCount(topic, numPartitions)
+	if err != nil {
+		return nil, trace.FuncNameWithErrorMsg(err, "getting topic partition count")
+	}
+
+	part, err := getPartitionNumberWithKey(topic, key, actualPartitions)
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "getting part number")
 	}

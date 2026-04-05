@@ -58,6 +58,14 @@ func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartition
 			return nil, err
 		}
 	}
+
+	actualPartitions, err := c.getTopicPartitionCount(topic, numPartitions)
+	if err != nil {
+		out.once()
+		return nil, trace.FuncNameWithErrorMsg(err, "getting topic partition count")
+	}
+	out.numPartitions = actualPartitions
+
 	return &out, nil
 }
 

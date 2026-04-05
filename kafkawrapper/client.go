@@ -85,6 +85,35 @@ func (c *client) Close() error {
 	return c.client.Close()
 }
 
+func (c *client) getTopicPartitionCount(topic string, fallback int32) (int32, error) {
+	if err := c.client.RefreshMetadata(topic); err != nil {
+		return 0, trace.FuncNameWithErrorMsg(err, "refreshing topic metadata")
+	}
+
+	partitions, err := c.client.Partitions(topic)
+	if err != nil {
+		return 0, trace.FuncNameWithErrorMsg(err, "getting topic partitions")
+	}
+
+	actual := int32(len(partitions))
+	if actual < 1 {
+		return 0, fmt.Errorf("topic %s has no partitions", topic)
+	}
+
+	if fallback > 0 && fallback != actual && c.logger != nil {
+		c.logger.Info(
+			fmt.Sprintf(
+				"topic partitions mismatch, use actual count topic:%s expected:%d actual:%d",
+				topic,
+				fallback,
+				actual,
+			),
+		)
+	}
+
+	return actual, nil
+}
+
 func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (int32, error) {
 	if numPartitions <= 0 {
 		return 0, nil
@@ -106,9 +135,11 @@ func getPartitionNumberWithKey(topic string, key string, numPartitions int32) (i
 
 func (c *client) createTopic(brokers []string, topic string, numPartitions int32) error {
 	adm, err := sarama.NewClusterAdmin(brokers, c.client.Config())
-	if err != nil && c.logger != nil {
-		c.logger.Error("creating cluster admin", zap.Error(err))
-		return nil
+	if err != nil {
+		if c.logger != nil {
+			c.logger.Error("creating cluster admin", zap.Error(err))
+		}
+		return err
 	}
 	defer func() {
 		_ = adm.Close()

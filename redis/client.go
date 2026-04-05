@@ -1,0 +1,94 @@
+package redis
+
+import (
+	"context"
+	"crypto/tls"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+
+	"github.com/tarmalonchik/golibs/trace"
+)
+
+var ErrKeyNotFound = errors.New("key not found")
+
+type Client struct {
+	client *redis.Client
+	conf   Config
+}
+
+func New(conf Config) *Client {
+	client := redis.NewClient(&redis.Options{
+		MaxRetries:      5,
+		MinRetryBackoff: 50 * time.Millisecond,
+		MaxRetryBackoff: 5 * time.Second,
+		Addr:            fmt.Sprintf("%s:%s", conf.RedisAddress, conf.RedisPort),
+		Password:        conf.RedisPassword,
+		ReadTimeout:     5 * time.Second,
+		WriteTimeout:    5 * time.Second,
+		DialTimeout:     5 * time.Second,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	})
+
+	return &Client{
+		client: client,
+		conf:   conf,
+	}
+}
+
+func (c *Client) Add(ctx context.Context, key string, value []byte, expiration time.Duration) error {
+	status := c.client.Set(ctx, key, value, expiration)
+	if status.Err() != nil {
+		return trace.FuncNameWithError(status.Err())
+	}
+	return nil
+}
+
+func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
+	status := c.client.Get(ctx, key)
+	if status.Err() != nil {
+		if errors.Is(status.Err(), redis.Nil) {
+			return nil, ErrKeyNotFound
+		}
+		return nil, trace.FuncNameWithError(status.Err())
+	}
+	return status.Bytes()
+}
+
+func (c *Client) Del(ctx context.Context, key string) {
+	_ = c.client.Del(ctx, key)
+}
+
+func (c *Client) Dec(ctx context.Context, key string) (int64, error) {
+	status := c.client.Decr(ctx, key)
+	if status.Err() != nil {
+		return 0, trace.FuncNameWithError(status.Err())
+	}
+	return status.Val(), nil
+}
+
+func (c *Client) GetValuesByPattern(ctx context.Context, pattern string) (out [][]byte, err error) {
+	status := c.client.Keys(ctx, pattern)
+	if status.Err() != nil {
+		return nil, trace.FuncNameWithError(status.Err())
+	}
+
+	if len(status.Val()) == 0 {
+		return nil, ErrKeyNotFound
+	}
+
+	statusSlice := c.client.MGet(ctx, status.Val()...)
+	if statusSlice.Err() != nil {
+		return nil, trace.FuncNameWithError(status.Err())
+	}
+
+	resp := make([][]byte, 0, len(statusSlice.Val()))
+	for _, val := range statusSlice.Val() {
+		resp = append(resp, []byte(val.(string)))
+	}
+	return resp, nil
+}
