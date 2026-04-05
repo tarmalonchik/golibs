@@ -26,14 +26,13 @@ func New(conf Config) *Client {
 		MaxRetryBackoff: 5 * time.Second,
 		Addr:            fmt.Sprintf("%s:%s", conf.RedisAddress, conf.RedisPort),
 		Password:        conf.RedisPassword,
-		ReadTimeout:     5 * time.Second,
-		WriteTimeout:    5 * time.Second,
-		DialTimeout:     5 * time.Second,
+		ReadTimeout:     15 * time.Second,
+		WriteTimeout:    15 * time.Second,
+		DialTimeout:     15 * time.Second,
 		TLSConfig: &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		},
 	})
-
 	return &Client{
 		client: client,
 		conf:   conf,
@@ -41,6 +40,8 @@ func New(conf Config) *Client {
 }
 
 func (c *Client) Add(ctx context.Context, key string, value []byte, expiration time.Duration) error {
+	key = c.wrapKey(key)
+
 	status := c.client.Set(ctx, key, value, expiration)
 	if status.Err() != nil {
 		return trace.FuncNameWithError(status.Err())
@@ -49,6 +50,8 @@ func (c *Client) Add(ctx context.Context, key string, value []byte, expiration t
 }
 
 func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
+	key = c.wrapKey(key)
+
 	status := c.client.Get(ctx, key)
 	if status.Err() != nil {
 		if errors.Is(status.Err(), redis.Nil) {
@@ -60,10 +63,14 @@ func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
 }
 
 func (c *Client) Del(ctx context.Context, key string) {
+	key = c.wrapKey(key)
+
 	_ = c.client.Del(ctx, key)
 }
 
 func (c *Client) Dec(ctx context.Context, key string) (int64, error) {
+	key = c.wrapKey(key)
+
 	status := c.client.Decr(ctx, key)
 	if status.Err() != nil {
 		return 0, trace.FuncNameWithError(status.Err())
@@ -72,6 +79,8 @@ func (c *Client) Dec(ctx context.Context, key string) (int64, error) {
 }
 
 func (c *Client) GetValuesByPattern(ctx context.Context, pattern string) (out [][]byte, err error) {
+	pattern = c.wrapKey(pattern)
+
 	status := c.client.Keys(ctx, pattern)
 	if status.Err() != nil {
 		return nil, trace.FuncNameWithError(status.Err())
@@ -91,4 +100,11 @@ func (c *Client) GetValuesByPattern(ctx context.Context, pattern string) (out []
 		resp = append(resp, []byte(val.(string)))
 	}
 	return resp, nil
+}
+
+func (c *Client) wrapKey(key string) string {
+	if c.conf.RedisKeyPrefix == "" {
+		return key
+	}
+	return fmt.Sprintf("%s-%s", c.conf.RedisKeyPrefix, key)
 }
