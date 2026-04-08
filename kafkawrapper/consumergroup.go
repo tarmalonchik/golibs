@@ -97,7 +97,7 @@ func (c *consumerGroup) Process(ctx context.Context, processorFunc ProcessorFunc
 					return nil
 				}
 
-				c.logger.Error("processing consumer group", zap.Error(err))
+				c.logger.Error("processing consumer group", zap.Error(err), zap.String("topic", c.topic))
 			}
 		}
 	}
