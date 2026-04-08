@@ -130,7 +130,7 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
-		return trace.FuncNameWithErrorMsg(err, "processing consumer")
+		return trace.FuncNameWithErrorMsg(err, fmt.Sprintf("processing consumer: topic %s, partition: %d", c.topic, c.offset))
 	}
 
 	for {
