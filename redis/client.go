@@ -12,7 +12,10 @@ import (
 	"github.com/tarmalonchik/golibs/trace"
 )
 
-var ErrKeyNotFound = errors.New("key not found")
+var (
+	ErrKeyNotFound  = errors.New("key not found")
+	ErrTypeMismatch = errors.New("type mismatch")
+)
 
 type Client struct {
 	client *redis.Client
@@ -60,6 +63,24 @@ func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
 		return nil, trace.FuncNameWithError(status.Err())
 	}
 	return status.Bytes()
+}
+
+func (c *Client) GetInt(ctx context.Context, key string) (int64, error) {
+	key = c.wrapKey(key)
+
+	status := c.client.Get(ctx, key)
+	if status.Err() != nil {
+		if errors.Is(status.Err(), redis.Nil) {
+			return 0, ErrKeyNotFound
+		}
+		return 0, trace.FuncNameWithError(status.Err())
+	}
+	out, err := status.Int64()
+	if err != nil {
+		return 0, ErrTypeMismatch
+	}
+
+	return out, nil
 }
 
 func (c *Client) Del(ctx context.Context, key string) {
