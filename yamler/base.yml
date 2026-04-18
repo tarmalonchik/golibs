@@ -7,6 +7,11 @@ linters:
   default: none
   enable:
     - unused
+  exclusions:
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 #    - asciicheck
 #    - bidichk
 #    - bodyclose
