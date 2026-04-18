@@ -8,7 +8,11 @@ vars:
 tasks:
   bump:
     cmds:
+      - git add -A
+      - git commit -m'new version'
+      - git push origin main
       - ./scripts/git_increment_tag.bash
+
   generate:
     dir: proto
     cmds:
@@ -43,4 +47,5 @@ tasks:
     desc: "run isolation tests"
     cmds:
       - mage testIsolation
+
 
