@@ -26,7 +26,7 @@ linters:
       - errchkjson
       - errname
       - errorlint
-#    - exhaustive
+      - exhaustive
 #    - exptostd
 #    - fatcontext
 #    - forbidigo
