@@ -30,6 +30,7 @@ func Bump() {
 		fmt.Println("Failed to run bump", err)
 		os.Exit(1) //nolint:revive
 	}
+
 	os.Exit(0) //nolint:revive
 }
 
