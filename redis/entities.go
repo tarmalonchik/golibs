@@ -1,5 +1,14 @@
 package redis
 
+import (
+	"errors"
+)
+
+var (
+	ErrKeyNotFound  = errors.New("key not found")
+	ErrTypeMismatch = errors.New("type mismatch")
+)
+
 type Config struct {
 	RedisAddress   string `envconfig:"REDIS_ADDRESS" default:"127.0.0.1"`
 	RedisPort      string `envconfig:"REDIS_PORT" default:"6379"`
