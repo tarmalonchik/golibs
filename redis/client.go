@@ -22,7 +22,6 @@ type Client interface {
 	GetValuesByPattern(ctx context.Context, pattern string) (out [][]byte, err error)
 }
 
-
 type client struct {
 	client *redis.Client
 	conf   Config
@@ -32,7 +31,7 @@ func New(conf Config) Client {
 	return &client{
 		client: redis.NewClient(&redis.Options{
 			MaxRetries:      5,
-			MinRetryBackoff: 50 * time.Millisecond,
+			MinRetryBackoff: 200 * time.Millisecond,
 			MaxRetryBackoff: 5 * time.Second,
 			Addr:            fmt.Sprintf("%s:%s", conf.RedisAddress, conf.RedisPort),
 			Password:        conf.RedisPassword,
@@ -109,7 +108,7 @@ func (c *client) GetValuesByPattern(ctx context.Context, pattern string) (out []
 
 	status := c.client.Keys(ctx, pattern)
 	if status.Err() != nil {
-		return nil, trace.FuncNameWithError(status.Err())
+		return nil, trace.FuncNameWithErrorMsg(status.Err(), "redis get keys")
 	}
 
 	if len(status.Val()) == 0 {
@@ -118,7 +117,7 @@ func (c *client) GetValuesByPattern(ctx context.Context, pattern string) (out []
 
 	statusSlice := c.client.MGet(ctx, status.Val()...)
 	if statusSlice.Err() != nil {
-		return nil, trace.FuncNameWithError(status.Err())
+		return nil, trace.FuncNameWithErrorMsg(statusSlice.Err(), "getting extract values from response")
 	}
 
 	resp := make([][]byte, 0, len(statusSlice.Val()))
