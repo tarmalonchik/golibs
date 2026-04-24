@@ -46,6 +46,8 @@ func (c *client) wrapTopic(key string) string {
 
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config := sarama.NewConfig()
+	config.Metadata.Timeout = 10 * time.Second
+
 	config.Net.DialTimeout = 10 * time.Second
 	config.Net.ReadTimeout = 10 * time.Second
 	config.Net.WriteTimeout = 10 * time.Second
@@ -53,14 +55,22 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
 	config.Net.SASL.Password = conf.KafkaPassword
 	config.Net.SASL.User = conf.KafkaUser
+
 	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
-	config.Metadata.Timeout = 10 * time.Second
+	config.Producer.Flush.Frequency = 200 * time.Millisecond
+	config.Producer.Flush.Messages = 100
 	config.Producer.Timeout = 5 * time.Second
+	config.Producer.CompressionLevel = int(sarama.CompressionSnappy)
+
+	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Fetch.Min = 100000
+
 	if conf.KafkaEnableTLS {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{}
 	}
+
 	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
 		return &XDGSCRAMClient{HashGeneratorFcn: func() hash.Hash { return sha512.New() }}
 	}
