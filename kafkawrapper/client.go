@@ -46,6 +46,9 @@ func (c *client) wrapTopic(key string) string {
 
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config := sarama.NewConfig()
+	config.Net.DialTimeout = 10 * time.Second
+	config.Net.ReadTimeout = 10 * time.Second
+	config.Net.WriteTimeout = 10 * time.Second
 	config.Net.SASL.Enable = true
 	config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
 	config.Net.SASL.Password = conf.KafkaPassword
