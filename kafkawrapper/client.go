@@ -52,6 +52,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config.Net.SASL.User = conf.KafkaUser
 	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
+	config.Metadata.Timeout = 10 * time.Second
 	config.Producer.Timeout = 5 * time.Second
 	if conf.KafkaEnableTLS {
 		config.Net.TLS.Enable = true
