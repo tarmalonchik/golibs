@@ -122,7 +122,12 @@ func (c *client) GetValuesByPattern(ctx context.Context, pattern string) (out []
 
 	resp := make([][]byte, 0, len(statusSlice.Val()))
 	for _, val := range statusSlice.Val() {
-		resp = append(resp, []byte(val.(string)))
+		valueString, ok := val.(string)
+		if !ok {
+			continue
+		}
+
+		resp = append(resp, []byte(valueString))
 	}
 	return resp, nil
 }
