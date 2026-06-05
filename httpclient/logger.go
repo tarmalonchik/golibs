@@ -23,7 +23,7 @@ func (s *loggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	if err != nil {
 		return nil, err
 	}
-	cloneReq.Header = s.mask(cloneReq.Header)
+	cloneReq.Header = maskHeaders(s.maskHeaders, cloneReq.Header)
 
 	dump, err := httputil.DumpRequest(cloneReq, true)
 	if err != nil {
@@ -49,9 +49,24 @@ func (s *loggingTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	return resp, nil
 }
 
-func (s *loggingTransport) mask(header http.Header) http.Header {
+func CopyRequestDump(req *http.Request, mask map[string]struct{}) ([]byte, error) {
+	cloneReq, err := cloneRequestWithBody(req)
+	if err != nil {
+		return nil, err
+	}
+	cloneReq.Header = maskHeaders(mask, cloneReq.Header)
+
+	dump, err := httputil.DumpRequest(cloneReq, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return dump, nil
+}
+
+func maskHeaders(maskHeaders map[string]struct{}, header http.Header) http.Header {
 	for key := range header {
-		if _, ok := s.maskHeaders[strings.ToLower(key)]; ok {
+		if _, ok := maskHeaders[strings.ToLower(key)]; ok {
 			header.Set(key, "[masked]")
 		}
 	}
