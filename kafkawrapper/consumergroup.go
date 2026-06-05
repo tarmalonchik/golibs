@@ -23,19 +23,21 @@ type consumerGroup struct {
 	topic    string
 	logger   CustomLogger
 	once     func()
-	cancel   context.CancelFunc
+
+	mu     sync.Mutex
+	cancel context.CancelFunc
 }
 
 func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
+	if topic == "" {
+		return nil, ErrTopicIsEmpty
+	}
+
 	topic = c.wrapTopic(topic)
 	group = c.wrapTopic(group)
 
 	var out consumerGroup
 	var err error
-
-	if topic == "" {
-		return nil, ErrTopicIsEmpty
-	}
 
 	if numPartitions < 1 {
 		return nil, ErrShouldHaveAtLeastOnePartition
@@ -66,16 +68,23 @@ func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, crea
 }
 
 func (c *consumerGroup) Close() error {
-	if c.cancel == nil {
+	c.mu.Lock()
+	cancel := c.cancel
+	c.mu.Unlock()
+
+	if cancel == nil {
 		return nil
 	}
-	c.cancel()
+	cancel()
 	c.once()
 	return nil
 }
 
 func (c *consumerGroup) Process(ctx context.Context, processorFunc ProcessorFunc, pp PostProcessorFuncCG) error {
-	ctx, c.cancel = context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	c.mu.Lock()
+	c.cancel = cancel
+	c.mu.Unlock()
 
 	for {
 		select {

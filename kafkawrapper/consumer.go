@@ -31,18 +31,19 @@ type consumer struct {
 	logger         CustomLogger
 	once           func()
 
+	mu     sync.Mutex
 	cancel context.CancelFunc
 }
 
 func (c *client) NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
+	if topic == "" {
+		return nil, ErrTopicIsEmpty
+	}
+
 	topic = c.wrapTopic(topic)
 
 	var out consumer
 	var err error
-
-	if topic == "" {
-		return nil, ErrTopicIsEmpty
-	}
 
 	if numPartitions < 1 {
 		return nil, ErrShouldHaveAtLeastOnePartition
@@ -117,16 +118,23 @@ func (c *consumer) SetTimeOffset(time time.Time) error {
 }
 
 func (c *consumer) Close() error {
-	if c.cancel == nil {
+	c.mu.Lock()
+	cancel := c.cancel
+	c.mu.Unlock()
+
+	if cancel == nil {
 		return nil
 	}
-	c.cancel()
+	cancel()
 	c.once()
 	return nil
 }
 
 func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, postProcessor PostProcessorFunc) error {
-	ctx, c.cancel = context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	c.mu.Lock()
+	c.cancel = cancel
+	c.mu.Unlock()
 
 	partConsumer, err := c.con.ConsumePartition(c.topic, c.partition, c.offset)
 	if err != nil {
@@ -156,7 +164,7 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 			}
 
 			if c.readOnlyOneMsg {
-				c.cancel()
+				cancel()
 				return nil
 			}
 		}

@@ -59,7 +59,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
 	config.Producer.Flush.Frequency = 200 * time.Millisecond
-	config.Producer.Flush.Messages = 100
+	config.Producer.Flush.Messages = 1
 	config.Producer.Timeout = 5 * time.Second
 	config.Producer.CompressionLevel = int(sarama.CompressionSnappy)
 

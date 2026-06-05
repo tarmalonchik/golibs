@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
 	kafka "github.com/tarmalonchik/golibs/kafkawrapper"
 	"github.com/tarmalonchik/golibs/test/basetest"
 )
