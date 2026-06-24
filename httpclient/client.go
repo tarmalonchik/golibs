@@ -63,6 +63,21 @@ type Response struct {
 	StatusCode int
 }
 
+func (c *Client) DoRequest(ctx context.Context, req *http.Request) (*Response, error) {
+	resp, err := c.do(ctx, req)
+	if err != nil {
+		return nil, trace.FuncNameWithError(err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, trace.FuncNameWithErrorMsg(err, "read response body")
+	}
+
+	return &Response{Body: body, StatusCode: resp.StatusCode}, nil
+}
+
 func (c *Client) Do(ctx context.Context, method string, url *url.URL, opts ...RequestOptions[any]) (*Response, error) {
 	req := withOptions(opts...)
 
