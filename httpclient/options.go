@@ -13,16 +13,16 @@ import (
 	"github.com/tarmalonchik/golibs/trace"
 )
 
-type Opt func(client *Client)
+type Opt func(client *client)
 
 func WithLogLevel(lvl logger.Level) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		v.logLevel = lvl
 	}
 }
 
 func WithMaskHeader(keys ...string) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		for i := range keys {
 			v.maskHeaders = append(v.maskHeaders, strings.ToLower(keys[i]))
 		}
@@ -30,13 +30,13 @@ func WithMaskHeader(keys ...string) Opt {
 }
 
 func WithLogTimeout(timeout time.Duration) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		v.timeout = timeout
 	}
 }
 
 func WithRetry(count uint) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		if count <= 0 {
 			return
 		}
@@ -45,13 +45,13 @@ func WithRetry(count uint) Opt {
 }
 
 func WithRetryDelay(delay time.Duration) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		v.retryDelay = delay
 	}
 }
 
 func WithLoggerSender(sender logger.Sender) Opt {
-	return func(v *Client) {
+	return func(v *client) {
 		v.loggerSender = sender
 	}
 }

@@ -15,7 +15,13 @@ import (
 	"github.com/tarmalonchik/golibs/trace"
 )
 
-type Client struct {
+//go:generate moq -rm -out client_mock.go -fmt goimports . Client
+type Client interface {
+	DoRequest(ctx context.Context, req *http.Request) (*Response, error)
+	Do(ctx context.Context, method string, url *url.URL, opts ...RequestOptions[any]) (*Response, error)
+}
+
+type client struct {
 	logLevel      logger.Level
 	timeout       time.Duration
 	retryAttempts uint
@@ -26,8 +32,8 @@ type Client struct {
 	maskHeaders   []string
 }
 
-func NewClient(opts ...Opt) *Client {
-	c := &Client{
+func NewClient(opts ...Opt) Client {
+	c := &client{
 		logLevel:      logger.LevelError,
 		timeout:       5 * time.Second,
 		retryAttempts: 1,
@@ -63,7 +69,7 @@ type Response struct {
 	StatusCode int
 }
 
-func (c *Client) DoRequest(ctx context.Context, req *http.Request) (*Response, error) {
+func (c *client) DoRequest(ctx context.Context, req *http.Request) (*Response, error) {
 	resp, err := c.do(ctx, req)
 	if err != nil {
 		return nil, trace.FuncNameWithError(err)
@@ -78,7 +84,7 @@ func (c *Client) DoRequest(ctx context.Context, req *http.Request) (*Response, e
 	return &Response{Body: body, StatusCode: resp.StatusCode}, nil
 }
 
-func (c *Client) Do(ctx context.Context, method string, url *url.URL, opts ...RequestOptions[any]) (*Response, error) {
+func (c *client) Do(ctx context.Context, method string, url *url.URL, opts ...RequestOptions[any]) (*Response, error) {
 	req := withOptions(opts...)
 
 	httpReq, err := req.buildRequest(ctx, url, method)
@@ -100,7 +106,7 @@ func (c *Client) Do(ctx context.Context, method string, url *url.URL, opts ...Re
 	return &Response{Body: body, StatusCode: resp.StatusCode}, nil
 }
 
-func (c *Client) do(ctx context.Context, req *http.Request) (*http.Response, error) {
+func (c *client) do(ctx context.Context, req *http.Request) (*http.Response, error) {
 	var (
 		resp *http.Response
 		err  error
