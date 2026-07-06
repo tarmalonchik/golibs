@@ -21,7 +21,7 @@ var ErrInvalidKey = errors.New("invalid key consumed")
 
 type Client interface {
 	NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error)
-	NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error)
+	NewSyncProducer(ctx context.Context, config ProducerConfig) (Producer, error)
 	NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error)
 }
 
