@@ -11,7 +11,7 @@ import (
 
 type ProducerConfig struct {
 	Topic         string `envconfig:"TOPIC" required:"true"`
-	NumPartitions int32  `envconfig:"NUM_PARTITIONS" default:"1"`
+	NumPartitions int32  `envconfig:"NUM_PARTITIONS" default:"100"`
 	CreateTopic   bool   `envconfig:"CREATE_TOPIC" default:"true"`
 }
 
