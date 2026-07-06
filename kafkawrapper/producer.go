@@ -10,9 +10,9 @@ import (
 )
 
 type ProducerConfig struct {
-	Topic         string `envconfig:"TOPIC" required:"true"`
-	NumPartitions int32  `envconfig:"NUM_PARTITIONS" default:"100"`
-	CreateTopic   bool   `envconfig:"CREATE_TOPIC" default:"true"`
+	Topic         string `env:"TOPIC" required:"true"`
+	NumPartitions int32  `env:"NUM_PARTITIONS" default:"100"`
+	CreateTopic   bool   `env:"CREATE_TOPIC" default:"true"`
 }
 
 type Producer interface {
