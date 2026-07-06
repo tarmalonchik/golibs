@@ -13,7 +13,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.12.3
 	github.com/magefile/mage v1.15.0
 	github.com/redis/go-redis/v9 v9.18.0
@@ -31,6 +30,7 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
+	github.com/caarlos0/env v3.5.0+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudfoundry-community/vaultkv v0.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

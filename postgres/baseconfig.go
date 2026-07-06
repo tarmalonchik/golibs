@@ -6,18 +6,18 @@ import (
 )
 
 type Config struct {
-	PgProto          string        `envconfig:"POSTGRES_PROTO" default:"tcp"`
-	PgURL            string        `envconfig:"POSTGRES_URL" default:""`
-	PgAddress        string        `envconfig:"POSTGRES_ADDRESS" default:"localhost"`
-	PgPort           string        `envconfig:"POSTGRES_PORT" default:""`
-	PgDB             string        `envconfig:"POSTGRES_DB" default:""`
-	PgUser           string        `envconfig:"POSTGRES_USER" default:""`
-	PgPassword       string        `envconfig:"POSTGRES_PASS" default:""`
-	PgSSLMode        string        `envconfig:"POSTGRES_SSL_MODE" default:"verify-full"`
-	PgMigrationsPath string        `envconfig:"POSTGRES_MIGRATIONSPATH" default:"file:migrations"`
-	PgTimeout        time.Duration `envconfig:"POSTGRES_TIMEOUT" default:"5s"`
-	PGMaxIdleConns   int           `envconfig:"POSTGRES_MAX_IDLE_CONNS" default:"10"`
-	PGMaxOpenConns   int           `envconfig:"POSTGRES_MAX_OPEN_CONNS" default:"15"`
+	PgProto          string        `env:"POSTGRES_PROTO" envDefault:"tcp"`
+	PgURL            string        `env:"POSTGRES_URL" envDefault:""`
+	PgAddress        string        `env:"POSTGRES_ADDRESS" envDefault:"localhost"`
+	PgPort           string        `env:"POSTGRES_PORT" envDefault:""`
+	PgDB             string        `env:"POSTGRES_DB" envDefault:""`
+	PgUser           string        `env:"POSTGRES_USER" envDefault:""`
+	PgPassword       string        `env:"POSTGRES_PASS" envDefault:""`
+	PgSSLMode        string        `env:"POSTGRES_SSL_MODE" envDefault:"verify-full"`
+	PgMigrationsPath string        `env:"POSTGRES_MIGRATIONSPATH" envDefault:"file:migrations"`
+	PgTimeout        time.Duration `env:"POSTGRES_TIMEOUT" envDefault:"5s"`
+	PGMaxIdleConns   int           `env:"POSTGRES_MAX_IDLE_CONNS" envDefault:"10"`
+	PGMaxOpenConns   int           `env:"POSTGRES_MAX_OPEN_CONNS" envDefault:"15"`
 }
 
 func (c *Config) GetPGMigrationsPath() string { return c.PgMigrationsPath }

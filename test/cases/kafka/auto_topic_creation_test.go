@@ -6,6 +6,8 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
+
+	kafka "github.com/tarmalonchik/golibs/kafkawrapper"
 	"github.com/tarmalonchik/golibs/test/basetest"
 )
 
@@ -25,7 +27,11 @@ func TestAutoTopicCreate(t *testing.T) {
 func (s *AutoTopicCreateTestSuite) TestProducer() {
 	ctx := context.Background()
 
-	p, err := s.Kafka.NewSyncProducer(ctx, lo.RandomString(10, alphabet), 1, true)
+	p, err := s.Kafka.NewSyncProducer(ctx, kafka.ProducerConfig{
+		Topic:         lo.RandomString(10, alphabet),
+		NumPartitions: 1,
+		CreateTopic:   true,
+	})
 	s.Require().NoError(err)
 
 	err = p.SendMessage([]byte("hello world"), "")

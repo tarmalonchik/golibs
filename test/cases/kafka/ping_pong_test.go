@@ -9,6 +9,8 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
+
+	kafka "github.com/tarmalonchik/golibs/kafkawrapper"
 	"github.com/tarmalonchik/golibs/test/basetest"
 )
 
@@ -28,7 +30,11 @@ func (s *PingPongTestSuite) TestPingPong() {
 
 		topic := lo.RandomString(10, alphabet)
 
-		p, err := s.Kafka.NewSyncProducer(ctx, topic, 1, true)
+		p, err := s.Kafka.NewSyncProducer(ctx, kafka.ProducerConfig{
+			Topic:         topic,
+			NumPartitions: 1,
+			CreateTopic:   true,
+		})
 		s.Require().NoError(err)
 
 		c, err := s.Kafka.NewConsumer(topic, "", 1, true)

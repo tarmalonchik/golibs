@@ -27,7 +27,11 @@ func (s *ValidationTestSuite) TestValidation() {
 	_, err = s.Kafka.NewConsumer("", "", 1, false)
 	s.Require().ErrorIs(err, kafka.ErrTopicIsEmpty)
 
-	_, err = s.Kafka.NewSyncProducer(ctx, "", 1, false)
+	_, err = s.Kafka.NewSyncProducer(ctx, kafka.ProducerConfig{
+		Topic:         "",
+		NumPartitions: 1,
+		CreateTopic:   false,
+	})
 	s.Require().ErrorIs(err, kafka.ErrTopicIsEmpty)
 
 	_, err = s.Kafka.NewConsumerGroup("a", "", 0, false)
@@ -36,6 +40,10 @@ func (s *ValidationTestSuite) TestValidation() {
 	_, err = s.Kafka.NewConsumer("a", "", 0, false)
 	s.Require().ErrorIs(err, kafka.ErrShouldHaveAtLeastOnePartition)
 
-	_, err = s.Kafka.NewSyncProducer(ctx, "a", 0, false)
+	_, err = s.Kafka.NewSyncProducer(ctx, kafka.ProducerConfig{
+		Topic:         "a",
+		NumPartitions: 0,
+		CreateTopic:   false,
+	})
 	s.Require().ErrorIs(err, kafka.ErrShouldHaveAtLeastOnePartition)
 }

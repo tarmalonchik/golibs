@@ -3,9 +3,10 @@ package config
 import (
 	"os"
 
+	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/tarmalonchik/golibs/trace"
 )
 
@@ -25,7 +26,7 @@ func Load(conf interface{}, configFile string) error {
 		log.WithField("filenames", configs).Info("config file not found, using defaults")
 	}
 
-	if err := envconfig.Process("", conf); err != nil {
+	if err := env.Parse(conf); err != nil {
 		return trace.FuncNameWithErrorMsg(err, "env config process")
 	}
 	return nil

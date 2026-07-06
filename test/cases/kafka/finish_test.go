@@ -8,6 +8,8 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
+
+	kafka "github.com/tarmalonchik/golibs/kafkawrapper"
 	"github.com/tarmalonchik/golibs/test/basetest"
 )
 
@@ -24,7 +26,11 @@ func (s *FinishTestSuite) TestProducerFinish() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewSyncProducer(ctx, lo.RandomString(10, alphabet), 1, true)
+		p, err := s.Kafka.NewSyncProducer(ctx, kafka.ProducerConfig{
+			Topic:         lo.RandomString(10, alphabet),
+			NumPartitions: 1,
+			CreateTopic:   true,
+		})
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
