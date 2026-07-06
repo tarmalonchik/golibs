@@ -9,7 +9,7 @@ import (
 	"github.com/tarmalonchik/golibs/trace"
 )
 
-type PartitionConfig struct {
+type ProducerConfig struct {
 	Topic         string `envconfig:"TOPIC" required:"true"`
 	NumPartitions int32  `envconfig:"NUM_PARTITIONS" default:"1"`
 	CreateTopic   bool   `envconfig:"CREATE_TOPIC" default:"true"`
@@ -31,7 +31,7 @@ type producer struct {
 	once   func()
 }
 
-func (c *client) NewSyncProducer(ctx context.Context, config PartitionConfig) (Producer, error) {
+func (c *client) NewSyncProducer(ctx context.Context, config ProducerConfig) (Producer, error) {
 	if config.Topic == "" {
 		return nil, ErrTopicIsEmpty
 	}
