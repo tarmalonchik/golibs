@@ -9,6 +9,12 @@ import (
 	"github.com/tarmalonchik/golibs/trace"
 )
 
+type PartitionConfig struct {
+	Topic         string `envconfig:"TOPIC" required:"true"`
+	NumPartitions int32  `envconfig:"NUM_PARTITIONS" default:"1"`
+	CreateTopic   bool   `envconfig:"CREATE_TOPIC" default:"true"`
+}
+
 type Producer interface {
 	SendMessage(msg []byte, key string) error
 	Close()
@@ -25,14 +31,14 @@ type producer struct {
 	once   func()
 }
 
-func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartitions int32, createTopic bool) (Producer, error) {
-	if topic == "" {
+func (c *client) NewSyncProducer(ctx context.Context, config PartitionConfig) (Producer, error) {
+	if config.Topic == "" {
 		return nil, ErrTopicIsEmpty
 	}
 
-	topic = c.wrapTopic(topic)
+	config.Topic = c.wrapTopic(config.Topic)
 
-	if numPartitions < 1 {
+	if config.NumPartitions < 1 {
 		return nil, ErrShouldHaveAtLeastOnePartition
 	}
 
@@ -43,8 +49,8 @@ func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartition
 
 	out := producer{
 		pro:           pro,
-		topic:         topic,
-		numPartitions: numPartitions,
+		topic:         config.Topic,
+		numPartitions: config.NumPartitions,
 		logger:        c.logger,
 		once: sync.OnceFunc(func() {
 			_ = pro.Close()
@@ -53,13 +59,13 @@ func (c *client) NewSyncProducer(ctx context.Context, topic string, numPartition
 
 	out.ctx, out.cancel = context.WithCancel(ctx)
 
-	if createTopic {
-		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+	if config.CreateTopic {
+		if err := c.createTopic(c.brokers, config.Topic, config.NumPartitions); err != nil {
 			return nil, err
 		}
 	}
 
-	actualPartitions, err := c.getTopicPartitionCount(topic, numPartitions)
+	actualPartitions, err := c.getTopicPartitionCount(config.Topic, config.NumPartitions)
 	if err != nil {
 		out.once()
 		return nil, trace.FuncNameWithErrorMsg(err, "getting topic partition count")
