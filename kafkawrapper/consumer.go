@@ -35,38 +35,45 @@ type consumer struct {
 	cancel context.CancelFunc
 }
 
-func (c *client) NewConsumer(topic string, key string, numPartitions int32, createTopic bool) (Consumer, error) {
-	if topic == "" {
+type ConsumerConfig struct {
+	Topic         string `env:"TOPIC,required"`
+	Key           string `env:"KEY" envDefault:""`
+	NumPartitions int    `env:"NUM_PARTITIONS" envDefault:"100"`
+	CreateTopic   bool   `env:"CREATE_TOPIC" envDefault:"true"`
+}
+
+func (c *client) NewConsumer(config ConsumerConfig) (Consumer, error) {
+	if config.Topic == "" {
 		return nil, ErrTopicIsEmpty
 	}
 
-	topic = c.wrapTopic(topic)
+	config.Topic = c.wrapTopic(config.Topic)
 
 	var out consumer
 	var err error
 
-	if numPartitions < 1 {
+	if config.NumPartitions < 1 {
 		return nil, ErrShouldHaveAtLeastOnePartition
 	}
 
-	if createTopic {
-		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+	if config.CreateTopic {
+		if err := c.createTopic(c.brokers, config.Topic, int32(config.NumPartitions)); err != nil {
 			return nil, err
 		}
 	}
 
-	actualPartitions, err := c.getTopicPartitionCount(topic, numPartitions)
+	actualPartitions, err := c.getTopicPartitionCount(config.Topic, int32(config.NumPartitions))
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "getting topic partition count")
 	}
 
-	part, err := getPartitionNumberWithKey(topic, key, actualPartitions)
+	part, err := getPartitionNumberWithKey(config.Topic, config.Key, actualPartitions)
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "getting part number")
 	}
 
 	out = consumer{
-		topic:     topic,
+		topic:     config.Topic,
 		partition: part,
 		logger:    c.logger,
 		client:    c.client,

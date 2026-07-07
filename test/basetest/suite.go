@@ -2,6 +2,7 @@ package basetest
 
 import (
 	"github.com/stretchr/testify/suite"
+
 	"github.com/tarmalonchik/golibs/config"
 	kafka "github.com/tarmalonchik/golibs/kafkawrapper"
 )
@@ -12,15 +13,19 @@ type Suite struct {
 	Kafka kafka.Client
 }
 
+type Configs struct {
+	Kafka kafka.Config `envPrefix:"KAFKA_"`
+}
+
 func (s *Suite) SetupSuite() {}
 
 func (s *Suite) BeforeTest(suiteName, testName string) {
-	cfg := kafka.Config{}
+	cfg := Configs{}
 
 	err := config.Load(&cfg, "")
 	s.Require().NoError(err)
 
-	s.Kafka, err = kafka.NewClient(cfg, nil)
+	s.Kafka, err = kafka.NewClient(cfg.Kafka, nil)
 	s.Require().NoError(err)
 }
 

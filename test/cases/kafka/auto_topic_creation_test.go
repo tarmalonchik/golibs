@@ -41,14 +41,23 @@ func (s *AutoTopicCreateTestSuite) TestProducer() {
 }
 
 func (s *AutoTopicCreateTestSuite) TestConsumer() {
-	c, err := s.Kafka.NewConsumer(lo.RandomString(10, alphabet), "", 1, true)
+	c, err := s.Kafka.NewConsumer(kafka.ConsumerConfig{
+		Topic:         lo.RandomString(10, alphabet),
+		NumPartitions: 1,
+		CreateTopic:   true,
+	})
 	s.Require().NoError(err)
 
 	_ = c.Close()
 }
 
 func (s *AutoTopicCreateTestSuite) TestConsumerGroup() {
-	c, err := s.Kafka.NewConsumerGroup(lo.RandomString(10, alphabet), "abc", 1, true)
+	c, err := s.Kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
+		Topic:         lo.RandomString(10, alphabet),
+		Group:         "abc",
+		NumPartitions: 1,
+		CreateTopic:   true,
+	})
 	s.Require().NoError(err)
 
 	_ = c.Close()

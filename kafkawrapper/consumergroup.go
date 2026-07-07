@@ -28,23 +28,30 @@ type consumerGroup struct {
 	cancel context.CancelFunc
 }
 
-func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, createTopic bool) (ConsumerGroup, error) {
-	if topic == "" {
+type ConsumerGroupConfig struct {
+	Topic         string `env:"TOPIC,required"`
+	Group         string `env:"GROUP,required"`
+	NumPartitions int    `env:"NUM_PARTITIONS" envDefault:"100"`
+	CreateTopic   bool   `env:"CREATE_TOPIC" envDefault:"true"`
+}
+
+func (c *client) NewConsumerGroup(config ConsumerGroupConfig) (ConsumerGroup, error) {
+	if config.Topic == "" {
 		return nil, ErrTopicIsEmpty
 	}
 
-	topic = c.wrapTopic(topic)
-	group = c.wrapTopic(group)
+	config.Topic = c.wrapTopic(config.Topic)
+	config.Group = c.wrapTopic(config.Group)
 
 	var out consumerGroup
 	var err error
 
-	if numPartitions < 1 {
+	if config.NumPartitions < 1 {
 		return nil, ErrShouldHaveAtLeastOnePartition
 	}
 
-	if createTopic {
-		if err := c.createTopic(c.brokers, topic, numPartitions); err != nil {
+	if config.CreateTopic {
+		if err := c.createTopic(c.brokers, config.Topic, int32(config.NumPartitions)); err != nil {
 			return nil, err
 		}
 	}
@@ -52,12 +59,12 @@ func (c *client) NewConsumerGroup(topic, group string, numPartitions int32, crea
 	cfg := *c.client.Config()
 	cfg.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, group, &cfg)
+	out.conGroup, err = sarama.NewConsumerGroup(c.brokers, config.Group, &cfg)
 	if err != nil {
 		return nil, trace.FuncNameWithErrorMsg(err, "creating consumer group")
 	}
 
-	out.topic = topic
+	out.topic = config.Topic
 	out.client = c.client
 	out.logger = c.logger
 	out.once = sync.OnceFunc(func() {

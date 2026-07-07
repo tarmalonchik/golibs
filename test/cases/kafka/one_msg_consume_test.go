@@ -38,7 +38,11 @@ func (s *OneConsumeTestSuite) TestOnceConsume() {
 		err = p.SendMessage(msg, "")
 		s.Require().NoError(err)
 
-		c, err := s.Kafka.NewConsumer(topic, "", 1, true)
+		c, err := s.Kafka.NewConsumer(kafka.ConsumerConfig{
+			Topic:         topic,
+			NumPartitions: 1,
+			CreateTopic:   true,
+		})
 		s.Require().NoError(err)
 		c.ReadOnlyOne()
 

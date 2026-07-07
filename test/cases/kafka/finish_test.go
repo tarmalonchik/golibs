@@ -58,7 +58,11 @@ func (s *FinishTestSuite) TestConsumerFinish() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumer(lo.RandomString(10, alphabet), "", 1, true)
+		p, err := s.Kafka.NewConsumer(kafka.ConsumerConfig{
+			Topic:         lo.RandomString(10, alphabet),
+			NumPartitions: 1,
+			CreateTopic:   true,
+		})
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})
@@ -86,7 +90,12 @@ func (s *FinishTestSuite) TestConsumerGroupFinish() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		p, err := s.Kafka.NewConsumerGroup(lo.RandomString(10, alphabet), "test", 1, true)
+		p, err := s.Kafka.NewConsumerGroup(kafka.ConsumerGroupConfig{
+			Topic:         lo.RandomString(10, alphabet),
+			Group:         "test",
+			NumPartitions: 1,
+			CreateTopic:   true,
+		})
 		s.Require().NoError(err)
 
 		ch := make(chan struct{})

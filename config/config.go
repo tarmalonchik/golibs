@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/caarlos0/env"
+	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 
