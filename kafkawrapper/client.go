@@ -163,7 +163,7 @@ func (c *client) createTopic(brokers []string, topic string, numPartitions int32
 		topic,
 		&sarama.TopicDetail{
 			NumPartitions:     numPartitions,
-			ReplicationFactor: c.conf.KafkaReplicationFactor,
+			ReplicationFactor: int16(c.conf.KafkaReplicationFactor),
 		},
 		false,
 	)

@@ -10,8 +10,8 @@ import (
 )
 
 type ProducerConfig struct {
-	Topic         string `env:"TOPIC" required:"true"`
-	NumPartitions int32  `env:"NUM_PARTITIONS" envDefault:"100"`
+	Topic         string `env:"TOPIC,required"`
+	NumPartitions int    `env:"NUM_PARTITIONS" envDefault:"100"`
 	CreateTopic   bool   `env:"CREATE_TOPIC" envDefault:"true"`
 }
 
@@ -47,10 +47,12 @@ func (c *client) NewSyncProducer(ctx context.Context, config ProducerConfig) (Pr
 		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
 	}
 
+	numPartitions := int32(config.NumPartitions)
+
 	out := producer{
 		pro:           pro,
 		topic:         config.Topic,
-		numPartitions: config.NumPartitions,
+		numPartitions: numPartitions,
 		logger:        c.logger,
 		once: sync.OnceFunc(func() {
 			_ = pro.Close()
@@ -60,12 +62,12 @@ func (c *client) NewSyncProducer(ctx context.Context, config ProducerConfig) (Pr
 	out.ctx, out.cancel = context.WithCancel(ctx)
 
 	if config.CreateTopic {
-		if err := c.createTopic(c.brokers, config.Topic, config.NumPartitions); err != nil {
+		if err := c.createTopic(c.brokers, config.Topic, numPartitions); err != nil {
 			return nil, err
 		}
 	}
 
-	actualPartitions, err := c.getTopicPartitionCount(config.Topic, config.NumPartitions)
+	actualPartitions, err := c.getTopicPartitionCount(config.Topic, numPartitions)
 	if err != nil {
 		out.once()
 		return nil, trace.FuncNameWithErrorMsg(err, "getting topic partition count")

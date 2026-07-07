@@ -15,12 +15,12 @@ var (
 )
 
 type Config struct {
-	KafkaPassword          string `env:"KAFKA_PASSWORD" required:"true"`
-	KafkaUser              string `env:"KAFKA_USER" required:"true"`
-	KafkaPort              string `env:"KAFKA_PORT" required:"true"`
-	KafkaControllersCount  int    `env:"KAFKA_CONTROLLERS_COUNT" required:"true"`
-	KafkaBrokerURLTemplate string `env:"KAFKA_BROKER_URL_TEMPLATE" required:"true"`
-	KafkaReplicationFactor int16  `env:"KAFKA_REPLICATION_FACTOR" envDefault:"3"`
+	KafkaPassword          string `env:"KAFKA_PASSWORD,required"`
+	KafkaUser              string `env:"KAFKA_USER,required"`
+	KafkaPort              string `env:"KAFKA_PORT,required"`
+	KafkaControllersCount  int    `env:"KAFKA_CONTROLLERS_COUNT,required"`
+	KafkaBrokerURLTemplate string `env:"KAFKA_BROKER_URL_TEMPLATE,required"`
+	KafkaReplicationFactor int    `env:"KAFKA_REPLICATION_FACTOR" envDefault:"3"`
 	KafkaEnableTLS         bool   `env:"KAFKA_ENABLE_TLS" envDefault:"true"`
-	KafkaPrefix            string `env:"KAFKA_PREFIX" required:"true"`
+	KafkaPrefix            string `env:"KAFKA_PREFIX,required"`
 }
