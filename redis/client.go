@@ -28,6 +28,14 @@ type client struct {
 }
 
 func New(conf Config) Client {
+	var tlsConfig *tls.Config
+
+	if conf.RedisEnableTLS {
+		tlsConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
 	return &client{
 		client: redis.NewClient(&redis.Options{
 			MaxRetries:      5,
@@ -38,9 +46,7 @@ func New(conf Config) Client {
 			ReadTimeout:     15 * time.Second,
 			WriteTimeout:    15 * time.Second,
 			DialTimeout:     15 * time.Second,
-			TLSConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
+			TLSConfig:       tlsConfig,
 		}),
 		conf: conf,
 	}
