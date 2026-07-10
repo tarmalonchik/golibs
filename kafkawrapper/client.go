@@ -41,7 +41,8 @@ func (c *client) wrapTopic(key string) string {
 	if c.conf.KafkaPrefix == "" {
 		return key
 	}
-	return fmt.Sprintf("%s-%s", c.conf.KafkaUser, key)
+
+	return fmt.Sprintf("%s-%s", c.conf.KafkaPrefix, key)
 }
 
 func NewClient(conf Config, logger CustomLogger) (Client, error) {
