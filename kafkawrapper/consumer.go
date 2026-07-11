@@ -128,22 +128,15 @@ func (c *consumer) SetTimeOffset(t time.Time) error {
 		return fmt.Errorf("time should not be in the future: %s", t.String())
 	}
 
-	err := retryer(func() error {
-		if err := c.client.RefreshMetadata(c.topic); err != nil {
-			return trace.FuncNameWithErrorMsg(err, "refreshing topic metadata")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	offset, err := c.client.GetOffset(c.topic, c.partition, t.UTC().UnixMilli())
 	if err != nil {
 		return fmt.Errorf("getting offset by time topic: %s, partition: %d, offset: %d %w", c.topic, c.partition, offset, err)
 	}
 	c.offset = offset
+
+	if c.offset == -1 {
+		c.offset = sarama.OffsetOldest
+	}
 
 	return nil
 }
