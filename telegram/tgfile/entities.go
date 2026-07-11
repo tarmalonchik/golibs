@@ -7,8 +7,8 @@ const (
 )
 
 type Config struct {
-	TgBotToken   string `envconfig:"TELEGRAM_BOT_TOKEN" required:"true"`
-	TgBotBaseURL string `envconfig:"TELEGRAM_BOT_API_BASE_URL" required:"true"`
+	TgBotToken   string `env:"TELEGRAM_BOT_TOKEN,required"`
+	TgBotBaseURL string `env:"TELEGRAM_BOT_API_BASE_URL,required"`
 }
 
 type sendDocResponseBody struct {

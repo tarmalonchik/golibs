@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/IBM/sarama v1.46.3
 	github.com/avast/retry-go v3.0.0+incompatible
+	github.com/caarlos0/env/v6 v6.10.1
 	github.com/geofffranks/simpleyaml v0.0.0-20161109204137-c9320f076de5
 	github.com/geofffranks/spruce v1.33.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
@@ -30,8 +31,6 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
-	github.com/caarlos0/env v3.5.0+incompatible // indirect
-	github.com/caarlos0/env/v6 v6.10.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudfoundry-community/vaultkv v0.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
