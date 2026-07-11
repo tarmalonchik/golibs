@@ -66,6 +66,7 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	config.Consumer.Fetch.Min = 100000
+	config.Consumer.MaxProcessingTime = 1 * time.Second
 
 	if conf.KafkaEnableTLS {
 		config.Net.TLS.Enable = true
