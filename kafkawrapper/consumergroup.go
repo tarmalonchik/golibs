@@ -162,8 +162,10 @@ func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 			}
 
 			if err != nil {
-				sess.MarkMessage(msg, "")
+				continue
 			}
+
+			sess.MarkMessage(msg, "")
 		}
 	}
 }
