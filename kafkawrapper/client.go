@@ -110,8 +110,15 @@ func (c *client) Close() error {
 }
 
 func (c *client) getTopicPartitionCount(topic string, fallback int32) (int32, error) {
-	if err := c.client.RefreshMetadata(topic); err != nil {
-		return 0, trace.FuncNameWithErrorMsg(err, "refreshing topic metadata")
+	err := retryer(func() error {
+		if err := c.client.RefreshMetadata(topic); err != nil {
+			return trace.FuncNameWithErrorMsg(err, "refreshing topic metadata")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	partitions, err := c.client.Partitions(topic)
