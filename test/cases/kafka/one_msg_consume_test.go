@@ -54,7 +54,7 @@ func (s *OneConsumeTestSuite) TestOnceConsume() {
 				close(ch)
 				return nil
 			},
-			func(err error) {},
+			func(ctx context.Context, err error) {},
 		)
 		s.Require().NoError(err)
 		<-ch

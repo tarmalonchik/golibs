@@ -171,7 +171,7 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 			}
 
 			if postProcessor != nil {
-				postProcessor(err)
+				postProcessor(ctx, err)
 			}
 
 			if err != nil {

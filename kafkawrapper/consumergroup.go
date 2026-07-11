@@ -155,7 +155,7 @@ func (c handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 			}
 
 			if c.postProcessor != nil {
-				if commit := c.postProcessor(err); commit {
+				if commit := c.postProcessor(c.ctx, err); commit {
 					sess.MarkMessage(msg, "")
 				}
 				continue

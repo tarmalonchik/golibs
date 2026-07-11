@@ -76,7 +76,7 @@ func (s *PingPongTestSuite) TestPingPong() {
 				mx.Unlock()
 
 				return nil
-			}, func(err error) {})
+			}, func(ctx context.Context, err error) {})
 
 			s.Require().NoError(err)
 		}()

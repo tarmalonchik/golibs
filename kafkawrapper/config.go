@@ -6,8 +6,8 @@ import (
 )
 
 type ProcessorFunc func(ctx context.Context, msg []byte, key string) error
-type PostProcessorFuncCG func(err error) (commit bool)
-type PostProcessorFunc func(err error)
+type PostProcessorFuncCG func(ctx context.Context, err error) (commit bool)
+type PostProcessorFunc func(ctx context.Context, err error)
 
 var (
 	ErrTopicIsEmpty                  = errors.New("empty topic")

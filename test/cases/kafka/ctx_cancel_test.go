@@ -68,7 +68,7 @@ func (s *CtxCancelTestSuite) TestConsumer() {
 			for {
 				err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 					return nil
-				}, func(err error) {})
+				}, func(ctx context.Context, err error) {})
 				s.Require().NoError(err)
 				break
 			}
@@ -97,7 +97,7 @@ func (s *CtxCancelTestSuite) TestConsumerGroup() {
 		go func() {
 			err = p.Process(ctx, func(ctx context.Context, msg []byte, key string) error {
 				return nil
-			}, func(err error) bool {
+			}, func(ctx context.Context, err error) bool {
 				return true
 			})
 			s.Require().NoError(err)
