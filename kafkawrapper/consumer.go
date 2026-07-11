@@ -124,8 +124,8 @@ func (c *consumer) SetLastExistingMessageOffset() error {
 }
 
 func (c *consumer) SetTimeOffset(t time.Time) error {
-	if t.Before(time.Now().UTC()) {
-		return fmt.Errorf("time should be in the future: %s", t.String())
+	if t.After(time.Now().UTC()) {
+		return fmt.Errorf("time should not be in the future: %s", t.String())
 	}
 
 	err := retryer(func() error {
