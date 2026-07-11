@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/avast/retry-go"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
@@ -79,9 +80,16 @@ func (c *client) NewConsumer(config ConsumerConfig) (Consumer, error) {
 		client:    c.client,
 	}
 
-	out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
+	err = retryer(func() error {
+		out.con, err = sarama.NewConsumer(c.brokers, c.client.Config())
+		if err != nil {
+			return trace.FuncNameWithErrorMsg(err, "create consumer")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, trace.FuncNameWithErrorMsg(err, "create consumer")
+		return nil, err
 	}
 
 	out.once = sync.OnceFunc(func() {
@@ -176,4 +184,20 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 			}
 		}
 	}
+}
+
+func retryer(in func() error) error {
+	err := retry.Do(
+		in,
+		retry.Attempts(5),
+		retry.Delay(300*time.Millisecond),
+		retry.RetryIf(func(err error) bool {
+			return err != nil
+		}),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

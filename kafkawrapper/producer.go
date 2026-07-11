@@ -42,9 +42,21 @@ func (c *client) NewSyncProducer(ctx context.Context, config ProducerConfig) (Pr
 		return nil, ErrShouldHaveAtLeastOnePartition
 	}
 
-	pro, err := sarama.NewSyncProducer(c.brokers, c.client.Config())
+	var (
+		pro sarama.SyncProducer
+		err error
+	)
+
+	err = retryer(func() error {
+		pro, err = sarama.NewSyncProducer(c.brokers, c.client.Config())
+		if err != nil {
+			return trace.FuncNameWithErrorMsg(err, "creating producer")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, trace.FuncNameWithErrorMsg(err, "creating producer")
+		return nil, err
 	}
 
 	numPartitions := int32(config.NumPartitions)

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/avast/retry-go"
 	"github.com/xdg-go/scram"
 	"go.uber.org/zap"
 
@@ -88,21 +87,14 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 		}
 	}
 
-	err = retry.Do(
-		func() (err error) {
-			out.client, err = sarama.NewClient(out.brokers, config)
-			if err != nil {
-				return trace.FuncNameWithErrorMsg(err, "creating kafka client")
-			}
+	err = retryer(func() error {
+		out.client, err = sarama.NewClient(out.brokers, config)
+		if err != nil {
+			return trace.FuncNameWithErrorMsg(err, "creating kafka client")
+		}
 
-			return nil
-		},
-		retry.Attempts(5),
-		retry.Delay(300*time.Millisecond),
-		retry.RetryIf(func(err error) bool {
-			return err != nil
-		}),
-	)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
