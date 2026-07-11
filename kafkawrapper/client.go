@@ -65,7 +65,6 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	config.Producer.CompressionLevel = int(sarama.CompressionSnappy)
 
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
-	config.Consumer.Fetch.Min = 100000
 	config.Consumer.MaxProcessingTime = 1 * time.Second
 
 	if conf.KafkaEnableTLS {
