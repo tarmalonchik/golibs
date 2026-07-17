@@ -135,6 +135,7 @@ func (c *consumer) SetTimeOffset(t time.Time) error {
 	c.offset = offset
 
 	if c.offset == -1 {
+		c.logger.Info(fmt.Sprintf("no offset found for time: %s", t.String()))
 		c.offset = sarama.OffsetOldest
 	}
 
