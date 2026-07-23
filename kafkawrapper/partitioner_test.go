@@ -10,7 +10,7 @@ import (
 func TestGetPartitioner(t *testing.T) {
 	topic := "vpnchik-core-to-vpn-action"
 
-	out, err := GetPartition(topic, "hereShouldBeIP", 10, 100)
+	out, err := GetPartition(topic, "hereShouldBeIP", 10, 15)
 	require.NoError(t, err)
 	require.Equal(t, int32(3), out)
 }

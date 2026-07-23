@@ -39,7 +39,7 @@ type consumer struct {
 type ConsumerConfig struct {
 	Topic         string `env:"TOPIC,required"`
 	Key           string `env:"KEY" envDefault:""`
-	NumPartitions int    `env:"NUM_PARTITIONS" envDefault:"100"`
+	NumPartitions int    `env:"NUM_PARTITIONS" envDefault:"15"`
 	CreateTopic   bool   `env:"CREATE_TOPIC" envDefault:"true"`
 }
 
