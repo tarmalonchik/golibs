@@ -2,10 +2,12 @@ package logger
 
 import (
 	"context"
+	"time"
 
-	"github.com/tarmalonchik/golibs/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/tarmalonchik/golibs/trace"
 )
 
 type Logger struct {
@@ -46,6 +48,19 @@ func NewLogger(opts ...Opt) *Logger {
 
 	return l
 }
+
+func (l *Logger) WithTime(t time.Time) *Logger {
+	return &Logger{
+		log: l.log.WithOptions(zap.WithClock(fixedClock{t: t})),
+		o:   l.o,
+	}
+}
+
+type fixedClock struct{ t time.Time }
+
+func (c fixedClock) Now() time.Time { return c.t }
+
+func (c fixedClock) NewTicker(d time.Duration) *time.Ticker { return time.NewTicker(d) }
 
 func (l *Logger) Close(_ context.Context) error {
 	_ = l.log.Sync()
