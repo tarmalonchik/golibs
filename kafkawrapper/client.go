@@ -13,6 +13,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/xdg-go/scram"
 	"go.uber.org/zap"
+	"golang.org/x/net/proxy"
 
 	"github.com/tarmalonchik/golibs/trace"
 )
@@ -70,6 +71,16 @@ func NewClient(conf Config, logger CustomLogger) (Client, error) {
 	if conf.KafkaEnableTLS {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{}
+	}
+
+	if conf.KafkaProxyAddr != "" {
+		dialer, err := proxy.SOCKS5("tcp", conf.KafkaProxyAddr, nil, proxy.Direct)
+		if err != nil {
+			return nil, trace.FuncNameWithErrorMsg(err, "creating kafka socks5 dialer")
+		}
+
+		config.Net.Proxy.Enable = true
+		config.Net.Proxy.Dialer = dialer
 	}
 
 	config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {

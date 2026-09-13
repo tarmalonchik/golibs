@@ -23,4 +23,5 @@ type Config struct {
 	KafkaReplicationFactor int    `env:"REPLICATION_FACTOR" envDefault:"3"`
 	KafkaEnableTLS         bool   `env:"ENABLE_TLS" envDefault:"true"`
 	KafkaPrefix            string `env:"PREFIX,required"`
+	KafkaProxyAddr         string `env:"PROXY_ADDR"`
 }
