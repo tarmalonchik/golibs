@@ -199,7 +199,7 @@ func (c *consumer) Process(ctx context.Context, processorFunc ProcessorFunc, pos
 func retryer(in func() error) error {
 	err := retry.Do(
 		in,
-		retry.Attempts(5),
+		retry.Attempts(50),
 		retry.Delay(300*time.Millisecond),
 		retry.RetryIf(func(err error) bool {
 			return err != nil
