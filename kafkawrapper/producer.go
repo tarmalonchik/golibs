@@ -74,7 +74,9 @@ func (c *client) NewSyncProducer(ctx context.Context, config ProducerConfig) (Pr
 	out.ctx, out.cancel = context.WithCancel(ctx)
 
 	if config.CreateTopic {
-		if err := c.createTopic(c.brokers, config.Topic, numPartitions); err != nil {
+		if err := retryer(func() error {
+			return c.createTopic(c.brokers, config.Topic, numPartitions)
+		}); err != nil {
 			return nil, err
 		}
 	}
