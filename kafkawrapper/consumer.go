@@ -208,7 +208,7 @@ func retryer(in func() error) error {
 	err := retry.Do(
 		in,
 		retry.Attempts(50),
-		retry.Delay(300*time.Millisecond),
+		retry.Delay(1*time.Second),
 		retry.RetryIf(func(err error) bool {
 			return err != nil
 		}),
