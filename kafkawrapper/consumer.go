@@ -58,7 +58,15 @@ func (c *client) NewConsumer(config ConsumerConfig) (Consumer, error) {
 	}
 
 	if config.CreateTopic {
-		if err := c.createTopic(c.brokers, config.Topic, int32(config.NumPartitions)); err != nil {
+		err = retryer(func() error {
+			if err := c.createTopic(c.brokers, config.Topic, int32(config.NumPartitions)); err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
 			return nil, err
 		}
 	}
